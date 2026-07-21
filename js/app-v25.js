@@ -159,13 +159,13 @@
     { image: 'img/pasteleria/alfa-nevado.jpg',            caption: 'Alfa nevado',          price: '$5.200' },
     { image: 'img/pasteleria/alfajor-de-almendras-2.jpg', caption: 'Alfajor de almendras', price: '$3.800' },
     { image: 'img/pasteleria/alfranui.jpg',               caption: 'Alfranui',             price: '$5.200' },
-    { image: 'img/pasteleria/budin-de-banana.jpg',        caption: 'Budín de banana',      price: '$4.800' },
-    { image: 'img/pasteleria/chipa.jpg',                  caption: 'Chipá',                price: '$4.000' },
+    { image: 'img/pasteleria/budin-de-banana.jpg',        caption: 'Budín de banana',      price: '$5.300' },
+    { image: 'img/pasteleria/chipa.jpg',                  caption: 'Chipá',                price: '$4.300' },
     { image: 'img/pasteleria/cookie-frambuesa.jpg',       caption: 'Cookie de frambuesa',  price: '$5.100' },
     { image: 'img/pasteleria/cookie-pistacho.jpg',        caption: 'Cookie de pistacho',   price: '$5.100' },
     { image: 'img/pasteleria/cookie-vegana.jpg',          caption: 'Cookie vegana',        price: '$4.800' },
     { image: 'img/pasteleria/cookie-choco.jpg',           caption: 'Cookie de choco',      price: '$5.100', position: '35% center' },
-    { image: 'img/pasteleria/budin-de-limon.jpg',         caption: 'Budín de limón',       price: '$4.800' },
+    { image: 'img/pasteleria/budin-de-limon.jpg',         caption: 'Budín de limón',       price: '$5.300' },
     { image: 'img/pasteleria/medialuna.jpg',              caption: 'Medialuna',            price: '$3.900' },
     { image: 'img/pasteleria/tita.jpg',                   caption: 'Tita',                 price: '$4.200' }
   ];
@@ -221,7 +221,7 @@
       cards: [
         { name: 'Flat white', desc: 'Doble ristretto con leche emulsionada', price: '$6.000', image: 'img/menu/flat-white.jpg' },
         { name: 'Alfranui', desc: 'Tapas de cacao, crema bariloche, crocante de choco blanco, reducción de frambuesas', price: '$5.200', image: 'img/pasteleria/alfranui.jpg' },
-        { name: 'Chipa prensado', desc: 'Nuestro chipa relleno de lomito y queso o capresse. Sale tostado y calentito', price: '$8.900', image: 'img/menu/chipa-prensado.jpg' }
+        { name: 'Chipa prensado', desc: 'Nuestro chipa relleno de lomito y queso o capresse. Sale tostado y calentito', price: '$9.100', image: 'img/menu/chipa-prensado.jpg' }
       ],
       restLabel: 'También de tarde',
       rest: [
@@ -284,7 +284,7 @@
       { name: 'Sandwich de hongos', desc: 'Pan de masa madre, queso danbo, champiñones grillados, cebolla caramelizada, espinaca. Con chips de batatas', price: 16000, tag: 'Vegetariano' },
       { name: 'Tostado', desc: 'Pan blanco de molde, lomito y queso o capresse', price: 9500, tag: 'Vegetariano' },
       { name: 'Medialuna rellena', desc: 'Rellena de queso danbo y lomito o capresse. Sale calentita', price: 10000, tag: 'Vegetariano' },
-      { name: 'Chipa prensado', desc: 'Nuestro chipa relleno de lomito y queso o capresse. Sale tostado y calentito', price: 8900, tag: 'Sin gluten' }
+      { name: 'Chipa prensado', desc: 'Nuestro chipa relleno de lomito y queso o capresse. Sale tostado y calentito', price: 9100, tag: 'Sin gluten' }
     ],
     tostones: [
       { name: 'Tostón de palta', desc: 'Masa madre, queso crema, palta, tomate cherry, oliva y semillas de sésamo', price: 11000, tag: 'Vegetariano' },
