@@ -161,7 +161,7 @@
     { image: 'img/pasteleria/alfranui.jpg',               caption: 'Alfranui',             price: '$5.200' },
     { image: 'img/pasteleria/budin-de-banana.jpg',        caption: 'Budín de banana',      price: '$4.800' },
     { image: 'img/pasteleria/chipa.jpg',                  caption: 'Chipá',                price: '$4.000' },
-    { image: 'img/pasteleria/cookie-frambuesa.jpg',       caption: 'Cookie de frambuesa',  price: '$4.800' },
+    { image: 'img/pasteleria/cookie-frambuesa.jpg',       caption: 'Cookie de frambuesa',  price: '$5.100' },
     { image: 'img/pasteleria/cookie-pistacho.jpg',        caption: 'Cookie de pistacho',   price: '$5.100' },
     { image: 'img/pasteleria/cookie-vegana.jpg',          caption: 'Cookie vegana',        price: '$4.800' },
     { image: 'img/pasteleria/cookie-choco.jpg',           caption: 'Cookie de choco',      price: '$5.100', position: '35% center' },
