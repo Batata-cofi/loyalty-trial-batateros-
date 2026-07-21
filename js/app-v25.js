@@ -249,7 +249,7 @@
       { name: 'Espresso', desc: 'Solo o doble', price: 4200 },
       { name: 'Espresso doble', desc: 'Doble shot', price: 5200 },
       { name: 'Espresso largo', desc: 'Más agua, misma base', price: 4200 },
-      { name: 'Americano', desc: 'Café negro suave', price: 5000, variants: [
+      { name: 'Americano', desc: 'Café negro suave', price: 5500, variants: [
         { label: 'Americano mediano', image: 'img/menu/americano-mediano.jpg' },
         { label: 'Americano grande', image: 'img/menu/americano-grande.jpg' }
       ]},
