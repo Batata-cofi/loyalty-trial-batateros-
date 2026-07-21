@@ -219,7 +219,7 @@
       title: 'Sugerencias de tarde',
       sub: 'Los combos batateros son hasta las 13:30. A esta hora servimos esto, suelto. Consultá precio en el local.',
       cards: [
-        { name: 'Flat white', desc: 'Doble ristretto con leche emulsionada', price: '$6.000', image: 'img/menu/flat-white.jpg' },
+        { name: 'Flat white', desc: 'Doble ristretto con leche emulsionada', price: '$6.200', image: 'img/menu/flat-white.jpg' },
         { name: 'Alfranui', desc: 'Tapas de cacao, crema bariloche, crocante de choco blanco, reducción de frambuesas', price: '$5.200', image: 'img/pasteleria/alfranui.jpg' },
         { name: 'Chipa prensado', desc: 'Nuestro chipa relleno de lomito y queso o capresse. Sale tostado y calentito', price: '$9.100', image: 'img/menu/chipa-prensado.jpg' }
       ],
@@ -246,22 +246,22 @@
 
   var MENU = {
     cafe: [
-      { name: 'Espresso', desc: 'Solo o doble', price: 3800 },
-      { name: 'Espresso doble', desc: 'Doble shot', price: 5000 },
-      { name: 'Espresso largo', desc: 'Más agua, misma base', price: 3800 },
+      { name: 'Espresso', desc: 'Solo o doble', price: 4200 },
+      { name: 'Espresso doble', desc: 'Doble shot', price: 5200 },
+      { name: 'Espresso largo', desc: 'Más agua, misma base', price: 4200 },
       { name: 'Americano', desc: 'Café negro suave', price: 5000, variants: [
         { label: 'Americano mediano', image: 'img/menu/americano-mediano.jpg' },
         { label: 'Americano grande', image: 'img/menu/americano-grande.jpg' }
       ]},
       { name: 'Filtrado', desc: 'Método de goteo', price: 7500 },
-      { name: 'Cortado', desc: 'Espresso con un toque de leche', price: 4600 },
-      { name: 'Cappu', desc: 'Cappuccino simple', price: 5000, variants: [
+      { name: 'Cortado', desc: 'Espresso con un toque de leche', price: 5000 },
+      { name: 'Cappu', desc: 'Cappuccino simple', price: 5400, variants: [
         { label: 'Cappu', image: 'img/menu/cappu.jpg' },
         { label: 'Cappu doble', image: 'img/menu/cappu-doble.jpg' }
       ]},
-      { name: 'Cappu doble', desc: 'Cappuccino doble', price: 6200 },
-      { name: 'Flat white', desc: 'Doble ristretto con leche emulsionada', price: 6000 },
-      { name: 'Latte', desc: 'Café con leche suave', price: 5600 },
+      { name: 'Cappu doble', desc: 'Cappuccino doble', price: 6400 },
+      { name: 'Flat white', desc: 'Doble ristretto con leche emulsionada', price: 6200 },
+      { name: 'Latte', desc: 'Café con leche suave', price: 6000 },
       { name: 'Té', desc: 'Consultar variedad', price: 5000 }
     ],
     especiales: [
