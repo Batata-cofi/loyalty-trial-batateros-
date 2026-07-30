@@ -1326,13 +1326,20 @@
     var reviewBlock = isMesa
       ? '    <a class="review-popup__btn-primary" id="review-popup-google-btn" href="' + GOOGLE_REVIEW_URL + '" target="_blank" rel="noopener">Dejar reseña en Google</a>'
       : '';
-    var dividerBlock = isMesa
-      ? '    <div class="review-popup__divider-row">'
-        + '      <span class="review-popup__divider-line"></span>'
-        + '      <span class="review-popup__divider-text">y sumate al newsletter</span>'
-        + '      <span class="review-popup__divider-line"></span>'
-        + '    </div>'
-      : '';
+
+    var cursoWhatsappUrl = 'https://wa.me/5491134316255?text=' + encodeURIComponent('Hola Batata! Quiero anotarme al curso de barista del 24/8.');
+    var cursoBlock = ''
+      + '    <div class="review-popup__curso">'
+      + '      <p class="review-popup__curso-text">☕ ¿Te enteraste de nuestros cursos de barista? Próximo curso comienza el 24/8.</p>'
+      + '      <a class="review-popup__btn-whatsapp" href="' + cursoWhatsappUrl + '" target="_blank" rel="noopener">Consultar por WhatsApp</a>'
+      + '    </div>';
+
+    var dividerBlock = ''
+      + '    <div class="review-popup__divider-row">'
+      + '      <span class="review-popup__divider-line"></span>'
+      + '      <span class="review-popup__divider-text">y sumate al newsletter</span>'
+      + '      <span class="review-popup__divider-line"></span>'
+      + '    </div>';
 
     return ''
       + '<div class="review-bar" id="review-popup-overlay" role="dialog" aria-labelledby="review-popup-title">'
@@ -1347,6 +1354,7 @@
       + '  </div>'
       + '  <div class="review-bar__expanded" id="review-bar-expanded" hidden>'
       +      reviewBlock
+      +      cursoBlock
       +      dividerBlock
       + '    <form id="review-popup-form">'
       + '      <input class="review-popup__mail-input" type="email" name="email" placeholder="tu@mail.com" required />'
@@ -1377,6 +1385,9 @@
       + '.review-bar__close{flex-shrink:0;background:none;border:none;font-size:18px;line-height:1;color:#1A1A1A;opacity:.4;cursor:pointer;padding:4px;}'
       + '.review-bar__expanded{padding:0 18px 20px;}'
       + '.review-popup__btn-primary{display:block;width:100%;background:#8B2A4A;color:#EDE4D8;border:none;border-radius:10px;padding:14px;font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:14px;text-align:center;text-decoration:none;box-sizing:border-box;}'
+      + '.review-popup__curso{background:rgba(139,42,74,0.06);border-radius:10px;padding:12px;margin-bottom:14px;}'
+      + '.review-popup__curso-text{margin:0 0 10px;font-size:13px;font-weight:600;color:#1A1A1A;line-height:1.4;text-align:center;}'
+      + '.review-popup__btn-whatsapp{display:block;width:100%;background:#25D366;color:#fff;border:none;border-radius:10px;padding:12px;font-family:"Raleway",sans-serif;font-size:13px;font-weight:700;text-align:center;text-decoration:none;box-sizing:border-box;}'
       + '.review-popup__divider-row{display:flex;align-items:center;gap:10px;margin-bottom:14px;}'
       + '.review-popup__divider-line{flex:1;height:1px;background:rgba(26,26,26,0.15);}'
       + '.review-popup__divider-text{font-size:10px;color:rgba(26,26,26,0.45);text-transform:uppercase;letter-spacing:.08em;white-space:nowrap;}'
@@ -1434,6 +1445,13 @@
       googleBtn.addEventListener('click', function () {
         markReviewPopupShown(variant);
         trackEvent('qr_review_click', { qr_source: variant });
+      });
+    }
+
+    var cursoBtn = bar.querySelector('.review-popup__btn-whatsapp');
+    if (cursoBtn) {
+      cursoBtn.addEventListener('click', function () {
+        trackEvent('curso_barista_whatsapp_click', { qr_source: variant });
       });
     }
 
