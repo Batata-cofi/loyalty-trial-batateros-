@@ -10,14 +10,14 @@
       origin: 'Colombia, Caldas',
       process: 'Lavado',
       variety: 'Caturra, Castillo, Colombia',
-      image: 'img/productos/ficha-espresso.jpg'
+      image: 'img/productos/ficha-espresso.jpg?v=25f'
     },
     filtrado: {
       label: 'En filtrado',
       origin: 'El Salvador',
       process: 'Natural anaeróbico',
       variety: 'Pacamara',
-      image: 'img/productos/ficha-filtrado.jpg'
+      image: 'img/productos/ficha-filtrado.jpg?v=25f'
     }
   };
 
