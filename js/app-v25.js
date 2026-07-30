@@ -1509,7 +1509,7 @@
       triggered = true;
       showReviewPopup(variant);
     }
-    var popupDelayMs = variant === 'mesa' ? 40000 : 10000;
+    var popupDelayMs = variant === 'mesa' ? 20000 : 10000;
     var reviewPopupTimeoutId = setTimeout(trigger, popupDelayMs);
     function checkScrollBottom() {
       if ((window.innerHeight + window.scrollY) >= (document.body.offsetHeight - 80)) {
