@@ -1320,8 +1320,8 @@
 
   function buildReviewPopupMarkup(variant) {
     var isMesa = variant === 'mesa';
-    var collapsedTitle = isMesa ? '¿Ya probaste Batata?' : 'Sumate a las novedades';
-    var collapsedSub   = isMesa ? 'Dejanos tu reseña y sumate al mail' : 'Enterate antes que nadie';
+    var collapsedTitle = isMesa ? '¿Ya probaste Batata?' : '¿Ya sabés del curso de barista?';
+    var collapsedSub   = isMesa ? 'Dejanos tu reseña · Curso de barista 24/8' : 'Próximo curso: 24/8 · Sumate a las novedades';
 
     var reviewBlock = isMesa
       ? '    <a class="review-popup__btn-primary" id="review-popup-google-btn" href="' + GOOGLE_REVIEW_URL + '" target="_blank" rel="noopener">Dejar reseña en Google</a>'
