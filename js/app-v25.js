@@ -2,7 +2,7 @@
   'use strict';
 
   var GOOGLE_RATING = 4.8;
-  var GOOGLE_REVIEW_COUNT = 297;
+  var GOOGLE_REVIEW_COUNT = 310;
 
   var SERVING_NOW = {
     espresso: {
@@ -811,12 +811,14 @@
       priceEl.textContent = price || '';
       var carouselHtml = '<div class="product-modal__carousel">';
       for (var i = 0; i < variants.length; i++) {
+        var labelSpan = variants[i].title ? '' : '<span class="product-modal__slide-label">' + escapeHtml(variants[i].label) + '</span>';
         carouselHtml += '<div class="product-modal__slide">'
           + '<img src="' + escapeHtml(variants[i].image) + '" alt="' + escapeHtml(variants[i].label) + '" width="640" height="480">'
-          + '<span class="product-modal__slide-label">' + escapeHtml(variants[i].label) + '</span>'
+          + labelSpan
           + '</div>';
       }
       carouselHtml += '</div>';
+      if (variants[0] && variants[0].title) nameEl.textContent = variants[0].title;
       var dotsHtml = '<div class="product-modal__dots">';
       for (var j = 0; j < variants.length; j++) {
         dotsHtml += '<button class="product-modal__dot' + (j === 0 ? ' is-active' : '') + '" data-slide="' + j + '" aria-label="Slide ' + (j + 1) + '"></button>';
@@ -838,6 +840,9 @@
           var activeIndex = Math.round(carousel.scrollLeft / carousel.offsetWidth);
           for (var k = 0; k < dots.length; k++) {
             dots[k].classList.toggle('is-active', k === activeIndex);
+          }
+          if (variants[activeIndex] && variants[activeIndex].title) {
+            nameEl.textContent = variants[activeIndex].title;
           }
         }, { passive: true });
         for (var d = 0; d < dots.length; d++) {
@@ -1010,8 +1015,8 @@
     var e = SERVING_NOW.espresso;
     var f = SERVING_NOW.filtrado;
     var variants = [
-      { label: e.label + ' — ' + e.origin + ', ' + e.process + ' — ' + e.variety, image: e.image },
-      { label: f.label + ' — ' + f.origin + ', ' + f.process + ' — ' + f.variety, image: f.image }
+      { label: e.label + ' — ' + e.origin + ', ' + e.process + ' — ' + e.variety, image: e.image, title: 'Espresso' },
+      { label: f.label + ' — ' + f.origin + ', ' + f.process + ' — ' + f.variety, image: f.image, title: 'Filtrado' }
     ];
     trigger.setAttribute('data-product-variants', JSON.stringify(variants));
     trigger.setAttribute('data-product-name', 'Nuestro café de origen');
