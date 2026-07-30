@@ -3130,6 +3130,18 @@ body.modal-open { overflow: hidden; }
   margin-top: 12px;
   text-align: center;
 }
+.product-modal__slide--tall img {
+  aspect-ratio: 2 / 3;
+  max-height: 62vh;
+  object-fit: contain;
+}
+.combo-modal--slim-title .combo-modal__name {
+  padding: 10px 20px 0;
+  font-size: 1.05rem;
+}
+.combo-modal--slim-title .combo-modal__price:empty {
+  display: none;
+}
 .product-modal__dots {
   display: flex;
   justify-content: center;

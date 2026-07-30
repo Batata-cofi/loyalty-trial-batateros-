@@ -787,6 +787,7 @@
       if (existingDesc) existingDesc.remove();
       imgEl.style.display = '';
       priceEl.style.paddingBottom = '';
+      modal.classList.remove('combo-modal--slim-title');
     }
 
     function openWith(image, name, price, alt) {
@@ -812,13 +813,17 @@
       var carouselHtml = '<div class="product-modal__carousel">';
       for (var i = 0; i < variants.length; i++) {
         var labelSpan = variants[i].title ? '' : '<span class="product-modal__slide-label">' + escapeHtml(variants[i].label) + '</span>';
-        carouselHtml += '<div class="product-modal__slide">'
+        var slideClass = variants[i].title ? ' product-modal__slide--tall' : '';
+        carouselHtml += '<div class="product-modal__slide' + slideClass + '">'
           + '<img src="' + escapeHtml(variants[i].image) + '" alt="' + escapeHtml(variants[i].label) + '" width="640" height="480">'
           + labelSpan
           + '</div>';
       }
       carouselHtml += '</div>';
-      if (variants[0] && variants[0].title) nameEl.textContent = variants[0].title;
+      if (variants[0] && variants[0].title) {
+        nameEl.textContent = variants[0].title;
+        modal.classList.add('combo-modal--slim-title');
+      }
       var dotsHtml = '<div class="product-modal__dots">';
       for (var j = 0; j < variants.length; j++) {
         dotsHtml += '<button class="product-modal__dot' + (j === 0 ? ' is-active' : '') + '" data-slide="' + j + '" aria-label="Slide ' + (j + 1) + '"></button>';
