@@ -909,7 +909,7 @@
     }
 
     document.addEventListener('click', function (e) {
-      var trigger = e.target.closest && e.target.closest('.combo-card[data-combo-image], .menu-item.has-photo, .pastry-card.has-photo, .torta-card.has-photo, .combos-rest-list__name.has-photo, #trust-cafe-trigger');
+      var trigger = e.target.closest && e.target.closest('.combo-card[data-combo-image], .menu-item.has-photo, .pastry-card.has-photo, .torta-card.has-photo, .combos-rest-list__name.has-photo, #trust-cafe-trigger, #serving-espresso-trigger');
       if (trigger) { e.preventDefault(); openFromTrigger(trigger); return; }
       if (e.target === modal || e.target === closeBtn) close();
     });
@@ -918,7 +918,7 @@
       if (e.key === 'Escape' && !modal.hidden) { close(); return; }
       if (e.key === 'Enter' || e.key === ' ') {
         var active = document.activeElement;
-        if (active && active.matches && active.matches('.combo-card[data-combo-image], .menu-item.has-photo, .pastry-card.has-photo, .torta-card.has-photo, .combos-rest-list__name.has-photo, #trust-cafe-trigger')) {
+        if (active && active.matches && active.matches('.combo-card[data-combo-image], .menu-item.has-photo, .pastry-card.has-photo, .torta-card.has-photo, .combos-rest-list__name.has-photo, #trust-cafe-trigger, #serving-espresso-trigger')) {
           e.preventDefault();
           openFromTrigger(active);
         }
@@ -1015,20 +1015,27 @@
   }
 
   function setupCafeOriginTrigger() {
-    var trigger = document.getElementById('trust-cafe-trigger');
-    if (!trigger) return;
     var e = SERVING_NOW.espresso;
     var f = SERVING_NOW.filtrado;
     var variants = [
       { label: e.label + ' — ' + e.origin + ', ' + e.process + ' — ' + e.variety, image: e.image, title: 'Espresso' },
       { label: f.label + ' — ' + f.origin + ', ' + f.process + ' — ' + f.variety, image: f.image, title: 'Filtrado' }
     ];
-    trigger.setAttribute('data-product-variants', JSON.stringify(variants));
-    trigger.setAttribute('data-product-name', 'Nuestro café de origen');
-    trigger.setAttribute('role', 'button');
-    trigger.setAttribute('tabindex', '0');
-    trigger.setAttribute('aria-label', 'Ver ficha técnica de nuestros cafés');
-    trigger.style.cursor = 'pointer';
+
+    var triggers = [
+      document.getElementById('trust-cafe-trigger'),
+      document.getElementById('serving-espresso-trigger')
+    ];
+
+    triggers.forEach(function (trigger) {
+      if (!trigger) return;
+      trigger.setAttribute('data-product-variants', JSON.stringify(variants));
+      trigger.setAttribute('data-product-name', 'Nuestro café de origen');
+      trigger.setAttribute('role', 'button');
+      trigger.setAttribute('tabindex', '0');
+      trigger.setAttribute('aria-label', 'Ver ficha técnica de nuestros cafés');
+      trigger.style.cursor = 'pointer';
+    });
   }
 
   function renderPantry() {
