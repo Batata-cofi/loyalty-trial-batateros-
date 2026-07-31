@@ -1319,13 +1319,10 @@
   }
 
   function buildReviewPopupMarkup(variant) {
-    var isMesa = variant === 'mesa';
-    var collapsedTitle = isMesa ? '¿Ya probaste Batata?' : '¿Ya sabés del curso de barista?';
-    var collapsedSub   = isMesa ? 'Dejanos tu reseña · Curso de barista 24/8' : 'Próximo curso: 24/8 · Sumate a las novedades';
+    var collapsedTitle = '¿Ya sabés del curso de barista?';
+    var collapsedSub   = 'Próximo curso: 24/8 · Sumate a las novedades';
 
-    var reviewBlock = isMesa
-      ? '    <a class="review-popup__btn-primary" id="review-popup-google-btn" href="' + GOOGLE_REVIEW_URL + '" target="_blank" rel="noopener">Dejar reseña en Google</a>'
-      : '';
+    var reviewBlock = '';
 
     var cursoWhatsappUrl = 'https://wa.me/5491134316255?text=' + encodeURIComponent('Hola Batata! Quiero anotarme al curso de barista del 24/8.');
     var cursoBlock = ''
