@@ -3294,11 +3294,21 @@ body.modal-open { overflow: hidden; }
   --loyalty-gold:    #DDB35C;
 }
 
-.site-nav__link--loyalty {
+.site-nav__loyalty-btn {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 13px;
+  letter-spacing: 0.01em;
+  color: var(--ink);
   background: none;
   border: none;
-  font: inherit;
+  padding: 6px 12px;
+  border-radius: 2px;
   cursor: pointer;
+}
+.site-nav__loyalty-btn:hover {
+  color: var(--burgundy);
+  background: var(--cream-deep);
 }
 
 .loyalty-cta {
