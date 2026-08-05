@@ -3281,3 +3281,275 @@ body.modal-open { overflow: hidden; }
   transform: translateY(0);
   box-shadow: 0 2px 6px rgba(212, 106, 58, 0.2);
 }
+
+/* =========================================================
+   BATATEROS — programa de fidelidad
+   ========================================================= */
+
+:root {
+  --loyalty-carbon:  #1A1A1A;
+  --loyalty-carbon-2: #262322;
+  --loyalty-borravino: #8B2A4A;
+  --loyalty-copper:  #C9863F;
+  --loyalty-gold:    #DDB35C;
+}
+
+.site-nav__link--loyalty {
+  background: none;
+  border: none;
+  font: inherit;
+  cursor: pointer;
+}
+
+.loyalty-cta {
+  background: var(--loyalty-carbon);
+  padding: 72px 0;
+  text-align: center;
+}
+.loyalty-cta__inner {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+.loyalty-cta .section-label {
+  color: var(--loyalty-gold);
+}
+.loyalty-cta__title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4vw, 2.75rem);
+  font-weight: 700;
+  color: #fff;
+  margin: 10px 0 14px;
+}
+.loyalty-cta__copy {
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  color: rgba(255,255,255,0.72);
+  line-height: 1.6;
+  margin-bottom: 26px;
+}
+.loyalty-cta__button {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 1rem;
+  background: var(--loyalty-borravino);
+  color: #fff;
+  padding: 14px 28px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  letter-spacing: 0.02em;
+  transition: background 150ms ease, transform 150ms ease;
+}
+.loyalty-cta__button:hover {
+  background: #a5395c;
+  transform: translateY(-1px);
+}
+.loyalty-cta__fineprint {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.4);
+  margin-top: 14px;
+  font-style: italic;
+}
+
+/* Modal chrome — mismo comportamiento que voucher-modal */
+
+.loyalty-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(44, 24, 16, 0.88);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  transition: opacity 250ms ease;
+  overflow-y: auto;
+}
+.loyalty-modal[hidden] { display: none; }
+.loyalty-modal.is-visible { opacity: 1; }
+.loyalty-modal__close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 32px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 8px;
+  transition: color 150ms ease, transform 150ms ease;
+  z-index: 1;
+}
+.loyalty-modal__close:hover {
+  color: var(--loyalty-gold);
+  transform: rotate(90deg);
+}
+.loyalty-modal__content {
+  background: var(--cream);
+  max-width: 440px;
+  width: 100%;
+  padding: 36px 24px;
+  border-radius: 6px;
+  position: relative;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.loyalty-modal__title {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--loyalty-borravino);
+  text-align: center;
+  letter-spacing: 0.01em;
+  margin-bottom: 8px;
+}
+.loyalty-modal__subtitle {
+  font-family: var(--font-sans);
+  font-size: 0.9375rem;
+  color: var(--ink-mid);
+  text-align: center;
+  margin-bottom: 22px;
+}
+
+.loyalty-form { display: flex; flex-direction: column; gap: 14px; }
+.loyalty-form__field { display: flex; flex-direction: column; gap: 6px; }
+.loyalty-form__field span {
+  font-family: var(--font-accent);
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-mid);
+}
+.loyalty-form__field input {
+  font-family: var(--font-sans);
+  font-size: 0.9375rem;
+  padding: 12px 14px;
+  background: var(--cream-deep);
+  border: 1px solid var(--cream-darker);
+  color: var(--ink);
+  border-radius: 3px;
+  transition: border-color 150ms ease;
+}
+.loyalty-form__field input:focus {
+  outline: none;
+  border-color: var(--loyalty-borravino);
+}
+.loyalty-form__error {
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  color: #a5395c;
+  text-align: center;
+}
+.loyalty-form__submit {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 1rem;
+  background: var(--loyalty-borravino);
+  color: #fff;
+  padding: 14px;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  margin-top: 4px;
+  transition: background 150ms ease;
+  letter-spacing: 0.02em;
+  width: 100%;
+}
+.loyalty-form__submit:hover { background: #75213a; }
+.loyalty-form__submit:disabled {
+  background: var(--cream-darker);
+  cursor: not-allowed;
+}
+.loyalty-modal__switch {
+  display: block;
+  width: 100%;
+  text-align: center;
+  background: none;
+  border: none;
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  color: var(--ink-mid);
+  text-decoration: underline;
+  cursor: pointer;
+  margin-top: 16px;
+  padding: 4px;
+}
+
+/* Tarjeta — diseño aprobado: carbón + borravino→cobre→oro */
+
+.loyalty-card {
+  background: var(--loyalty-carbon);
+  color: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 18px;
+  box-shadow: 0 16px 40px rgba(26, 26, 26, 0.35);
+}
+.loyalty-card__top {
+  padding: 20px 22px;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  background: var(--loyalty-carbon-2);
+}
+.loyalty-card__brand {
+  font-family: var(--font-heading);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--loyalty-gold);
+}
+.loyalty-card__name {
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  color: rgba(255,255,255,0.6);
+}
+.loyalty-card__balance {
+  padding: 22px 22px 6px;
+  text-align: center;
+}
+.loyalty-card__balance-label {
+  display: block;
+  font-family: var(--font-accent);
+  font-size: 0.6875rem;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.5);
+  margin-bottom: 6px;
+}
+.loyalty-card__balance-value {
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #fff;
+}
+.loyalty-card__track {
+  display: flex;
+  gap: 4px;
+  padding: 18px 22px 4px;
+}
+.loyalty-card__dot {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255,255,255,0.12);
+}
+.loyalty-card__dot.is-reached { background: var(--loyalty-borravino); }
+.loyalty-card__dot.is-reached-copper { background: var(--loyalty-copper); }
+.loyalty-card__dot.is-reached-gold { background: var(--loyalty-gold); }
+.loyalty-card__next {
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  color: rgba(255,255,255,0.55);
+  text-align: center;
+  padding: 10px 22px 22px;
+}

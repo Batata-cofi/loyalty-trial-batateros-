@@ -41,7 +41,16 @@
   <link href="https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100;0,400;0,500;0,600;0,700;0,900;1,400;1,700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <script>emailjs.init('lzWqlAeU6ejqBHLDH');</script>
-  <link rel="stylesheet" href="css/styles-v25.css?v=25e">
+
+  <!-- Batateros — Supabase (proyecto de staging, org "Batata Cofi - Loyalty") -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script>
+    var BATATEROS_SUPABASE_URL = 'https://iibxrpdidwhvilrjhbmm.supabase.co';
+    var BATATEROS_SUPABASE_ANON_KEY = 'sb_publishable_xcLoqUUlCA65PRkj5VUrgA_bi-9C9Xm';
+    var bataterosClient = window.supabase.createClient(BATATEROS_SUPABASE_URL, BATATEROS_SUPABASE_ANON_KEY);
+  </script>
+
+  <link rel="stylesheet" href="css/styles-v25.css?v=25f">
 
   <script type="application/ld+json">
   {
@@ -97,6 +106,7 @@
         <li><a href="#aprende-cafe" class="site-nav__link" data-section="aprende-cafe">Aprendé café</a></li>
         <li><a href="#despensa" class="site-nav__link" data-section="despensa">Despensa</a></li>
         <li><a href="#donde-estamos" class="site-nav__link" data-section="donde-estamos">Encontranos</a></li>
+        <li><button type="button" class="site-nav__link site-nav__link--loyalty" data-open-loyalty>Batateros</button></li>
       </ul>
     </div>
   </nav>
@@ -267,6 +277,18 @@
         Reclamar mi latte gratis
       </button>
       <p class="voucher-cta__fineprint" data-reveal>Válido por 4 días desde que lo generás. Un voucher por persona.</p>
+    </div>
+  </section>
+
+  <section class="loyalty-cta" id="batateros">
+    <div class="loyalty-cta__inner">
+      <span class="section-label" data-reveal>Programa de fidelidad</span>
+      <h2 class="loyalty-cta__title" data-reveal>Batateros</h2>
+      <p class="loyalty-cta__copy" data-reveal>Sumá 1 punto cada $100 que gastes en Batata y subí de nivel. Registrate y arrancá a acumular hoy mismo.</p>
+      <button type="button" class="loyalty-cta__button" data-open-loyalty data-reveal>
+        Quiero mi tarjeta Batateros
+      </button>
+      <p class="loyalty-cta__fineprint" data-reveal>En prueba — los puntos se acreditan cuando la integración con caja esté lista.</p>
     </div>
   </section>
 
@@ -491,6 +513,83 @@
     </div>
   </div>
 
+  <div class="loyalty-modal" id="loyalty-modal" hidden role="dialog" aria-modal="true" aria-labelledby="loyalty-modal-title">
+    <button class="loyalty-modal__close" aria-label="Cerrar" type="button">×</button>
+    <div class="loyalty-modal__content">
+
+      <div class="loyalty-view" data-loyalty-view="register">
+        <h3 id="loyalty-modal-title" class="loyalty-modal__title">Creá tu tarjeta Batateros</h3>
+        <p class="loyalty-modal__subtitle">Nombre, mail y teléfono — así te reconocemos en cada compra.</p>
+        <form class="loyalty-form" id="loyalty-register-form">
+          <label class="loyalty-form__field">
+            <span>Nombre</span>
+            <input type="text" name="nombre" required placeholder="Como te llamás" autocomplete="name">
+          </label>
+          <label class="loyalty-form__field">
+            <span>Fecha de nacimiento</span>
+            <input type="date" name="fecha_nacimiento" required autocomplete="bday">
+          </label>
+          <label class="loyalty-form__field">
+            <span>Teléfono</span>
+            <input type="tel" name="telefono" required placeholder="11 2345 6789" autocomplete="tel">
+          </label>
+          <label class="loyalty-form__field">
+            <span>Email</span>
+            <input type="email" name="email" required placeholder="vos@tuemail.com" autocomplete="email">
+          </label>
+          <label class="loyalty-form__field">
+            <span>Contraseña</span>
+            <input type="password" name="password" required minlength="6" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+          </label>
+          <p class="loyalty-form__error" id="loyalty-register-error" hidden></p>
+          <button type="submit" class="loyalty-form__submit">Crear mi tarjeta</button>
+        </form>
+        <button type="button" class="loyalty-modal__switch" data-loyalty-switch="login">¿Ya tenés cuenta? Iniciá sesión</button>
+      </div>
+
+      <div class="loyalty-view" data-loyalty-view="login" hidden>
+        <h3 class="loyalty-modal__title">Iniciá sesión</h3>
+        <p class="loyalty-modal__subtitle">Entrá para ver tu tarjeta y tu saldo de puntos.</p>
+        <form class="loyalty-form" id="loyalty-login-form">
+          <label class="loyalty-form__field">
+            <span>Email</span>
+            <input type="email" name="email" required placeholder="vos@tuemail.com" autocomplete="email">
+          </label>
+          <label class="loyalty-form__field">
+            <span>Contraseña</span>
+            <input type="password" name="password" required autocomplete="current-password">
+          </label>
+          <p class="loyalty-form__error" id="loyalty-login-error" hidden></p>
+          <button type="submit" class="loyalty-form__submit">Iniciar sesión</button>
+        </form>
+        <button type="button" class="loyalty-modal__switch" data-loyalty-switch="register">¿No tenés cuenta? Registrate</button>
+      </div>
+
+      <div class="loyalty-view" data-loyalty-view="pending" hidden>
+        <h3 class="loyalty-modal__title">Revisá tu mail</h3>
+        <p class="loyalty-modal__subtitle" id="loyalty-pending-text">Te mandamos un mail de confirmación. Abrilo y volvé a esta pantalla.</p>
+        <button type="button" class="loyalty-form__submit" id="loyalty-pending-refresh">Ya confirmé, continuar</button>
+      </div>
+
+      <div class="loyalty-view" data-loyalty-view="card" hidden>
+        <div class="loyalty-card">
+          <div class="loyalty-card__top">
+            <span class="loyalty-card__brand">Batateros</span>
+            <span class="loyalty-card__name" id="loyalty-card-nombre">—</span>
+          </div>
+          <div class="loyalty-card__balance">
+            <span class="loyalty-card__balance-label">Puntos vigentes</span>
+            <strong class="loyalty-card__balance-value" id="loyalty-card-saldo">0</strong>
+          </div>
+          <div class="loyalty-card__track" id="loyalty-card-track" aria-label="Progreso hacia el próximo nivel"></div>
+          <p class="loyalty-card__next" id="loyalty-card-next"></p>
+        </div>
+        <button type="button" class="loyalty-modal__switch" id="loyalty-logout">Cerrar sesión</button>
+      </div>
+
+    </div>
+  </div>
+
   <div class="voucher-modal" id="voucher-modal" hidden role="dialog" aria-modal="true" aria-labelledby="voucher-modal-title">
     <button class="voucher-modal__close" aria-label="Cerrar" type="button">×</button>
     <div class="voucher-modal__content">
@@ -563,6 +662,6 @@
     <span class="mobile-cta-bar__arrow" aria-hidden="true">→</span>
   </a>
 
-  <script src="js/app-v25.js?v=25o"></script>
+  <script src="js/app-v25.js?v=25p"></script>
 </body>
 </html>

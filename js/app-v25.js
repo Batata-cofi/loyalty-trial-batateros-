@@ -1292,6 +1292,290 @@
     });
   }
 
+  // ─── BATATEROS (loyalty) ───────────────────────────────────────────────────
+
+  var LOYALTY_TIERS = [400, 650, 950, 1300, 1700];
+  var LOYALTY_PENDING_KEY = 'batata_loyalty_pending';
+
+  function loyaltyTierClass(index) {
+    if (index < 2) return 'is-reached';
+    if (index < 4) return 'is-reached-copper';
+    return 'is-reached-gold';
+  }
+
+  function renderLoyaltyTrack(points) {
+    var track = document.getElementById('loyalty-card-track');
+    var next  = document.getElementById('loyalty-card-next');
+    if (!track) return;
+    var html = '';
+    for (var i = 0; i < LOYALTY_TIERS.length; i++) {
+      var reached = points >= LOYALTY_TIERS[i];
+      html += '<span class="loyalty-card__dot' + (reached ? ' ' + loyaltyTierClass(i) : '') + '"></span>';
+    }
+    track.innerHTML = html;
+
+    var nextThreshold = null;
+    for (var j = 0; j < LOYALTY_TIERS.length; j++) {
+      if (points < LOYALTY_TIERS[j]) { nextThreshold = LOYALTY_TIERS[j]; break; }
+    }
+    if (next) {
+      next.textContent = nextThreshold
+        ? 'Faltan ' + (nextThreshold - points) + ' puntos para el próximo nivel'
+        : '¡Nivel máximo alcanzado!';
+    }
+  }
+
+  function initLoyalty() {
+    var modal = document.getElementById('loyalty-modal');
+    if (!modal || typeof bataterosClient === 'undefined') return;
+
+    var closeBtn = modal.querySelector('.loyalty-modal__close');
+    var views = {
+      register: modal.querySelector('[data-loyalty-view="register"]'),
+      login:    modal.querySelector('[data-loyalty-view="login"]'),
+      pending:  modal.querySelector('[data-loyalty-view="pending"]'),
+      card:     modal.querySelector('[data-loyalty-view="card"]')
+    };
+    var lastFocused = null;
+
+    function showView(name) {
+      Object.keys(views).forEach(function (key) {
+        views[key].hidden = key !== name;
+      });
+    }
+
+    function openModal() {
+      lastFocused = document.activeElement;
+      modal.hidden = false;
+      document.body.classList.add('modal-open');
+      requestAnimationFrame(function () { modal.classList.add('is-visible'); });
+      if (closeBtn) closeBtn.focus();
+    }
+
+    function closeModal() {
+      modal.classList.remove('is-visible');
+      setTimeout(function () {
+        modal.hidden = true;
+        document.body.classList.remove('modal-open');
+        if (lastFocused && typeof lastFocused.focus === 'function') lastFocused.focus();
+      }, 250);
+    }
+
+    function readPending() {
+      try {
+        var raw = window.localStorage.getItem(LOYALTY_PENDING_KEY);
+        return raw ? JSON.parse(raw) : null;
+      } catch (err) { return null; }
+    }
+    function writePending(data) {
+      try { window.localStorage.setItem(LOYALTY_PENDING_KEY, JSON.stringify(data)); } catch (err) {}
+    }
+    function clearPending() {
+      try { window.localStorage.removeItem(LOYALTY_PENDING_KEY); } catch (err) {}
+    }
+
+    function showFieldError(fieldId, message) {
+      var el = document.getElementById(fieldId);
+      if (!el) return;
+      el.textContent = message;
+      el.hidden = false;
+    }
+    function clearFieldError(fieldId) {
+      var el = document.getElementById(fieldId);
+      if (!el) return;
+      el.hidden = true;
+    }
+
+    // Calculamos el saldo a mano desde puntos/canjes (no desde la vista) para
+    // depender solo de las policies de RLS de las tablas base, ya probadas.
+    function loadBalance(clienteId, callback) {
+      var todayISO = new Date().toISOString().slice(0, 10);
+      Promise.all([
+        bataterosClient.from('puntos').select('puntos_otorgados, fecha_vencimiento').eq('cliente_id', clienteId).eq('estado', 'activo'),
+        bataterosClient.from('canjes').select('puntos_utilizados').eq('cliente_id', clienteId)
+      ]).then(function (results) {
+        var ganados = 0;
+        if (results[0].data) {
+          results[0].data.forEach(function (row) {
+            if (row.fecha_vencimiento >= todayISO) ganados += row.puntos_otorgados;
+          });
+        }
+        var usados = 0;
+        if (results[1].data) {
+          results[1].data.forEach(function (row) { usados += row.puntos_utilizados; });
+        }
+        callback(ganados - usados);
+      });
+    }
+
+    function renderCard(clienteId, nombre) {
+      clearPending();
+      document.getElementById('loyalty-card-nombre').textContent = nombre;
+      loadBalance(clienteId, function (saldo) {
+        document.getElementById('loyalty-card-saldo').textContent = saldo;
+        renderLoyaltyTrack(saldo);
+      });
+      showView('card');
+    }
+
+    function completeRegistration(userId, pending) {
+      bataterosClient
+        .from('clientes_loyalty')
+        .insert({
+          auth_user_id: userId,
+          nombre: pending.nombre,
+          fecha_nacimiento: pending.fecha_nacimiento,
+          telefono: pending.telefono,
+          email: pending.email
+        })
+        .select('id, nombre')
+        .single()
+        .then(function (res) {
+          if (res.error) {
+            // Puede que la fila ya exista (doble confirmación / reintento) — la releemos.
+            bataterosClient
+              .from('clientes_loyalty')
+              .select('id, nombre')
+              .eq('auth_user_id', userId)
+              .maybeSingle()
+              .then(function (r2) {
+                if (r2.data) renderCard(r2.data.id, r2.data.nombre);
+                else showView('register');
+              });
+            return;
+          }
+          renderCard(res.data.id, res.data.nombre);
+        });
+    }
+
+    function loadCard() {
+      bataterosClient.auth.getSession().then(function (res) {
+        var session = res.data && res.data.session;
+        if (!session) { showView('register'); return; }
+
+        bataterosClient
+          .from('clientes_loyalty')
+          .select('id, nombre')
+          .eq('auth_user_id', session.user.id)
+          .maybeSingle()
+          .then(function (result) {
+            if (result.error || !result.data) {
+              var pending = readPending();
+              if (pending) {
+                completeRegistration(session.user.id, pending);
+              } else {
+                showView('register');
+              }
+              return;
+            }
+            renderCard(result.data.id, result.data.nombre);
+          });
+      });
+    }
+
+    document.querySelectorAll('[data-open-loyalty]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        openModal();
+        loadCard();
+      });
+    });
+
+    modal.addEventListener('click', function (e) {
+      if (e.target === modal || e.target === closeBtn) closeModal();
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && !modal.hidden) closeModal();
+    });
+
+    modal.querySelectorAll('[data-loyalty-switch]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        showView(btn.getAttribute('data-loyalty-switch'));
+      });
+    });
+
+    var registerForm = document.getElementById('loyalty-register-form');
+    if (registerForm) {
+      registerForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        clearFieldError('loyalty-register-error');
+
+        var nombre = registerForm.querySelector('[name="nombre"]').value.trim();
+        var fechaNacimiento = registerForm.querySelector('[name="fecha_nacimiento"]').value;
+        var telefono = registerForm.querySelector('[name="telefono"]').value.trim();
+        var email = registerForm.querySelector('[name="email"]').value.trim();
+        var password = registerForm.querySelector('[name="password"]').value;
+
+        var submitBtn = registerForm.querySelector('button[type="submit"]');
+        var originalLabel = submitBtn.textContent;
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Creando…';
+
+        var pendingData = { nombre: nombre, fecha_nacimiento: fechaNacimiento, telefono: telefono, email: email };
+
+        bataterosClient.auth.signUp({ email: email, password: password }).then(function (res) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = originalLabel;
+
+          if (res.error) {
+            showFieldError('loyalty-register-error', res.error.message);
+            return;
+          }
+
+          writePending(pendingData);
+
+          if (res.data.session) {
+            completeRegistration(res.data.user.id, pendingData);
+          } else {
+            document.getElementById('loyalty-pending-text').textContent =
+              'Te mandamos un mail de confirmación a ' + email + '. Abrilo, tocá el link y volvé a esta pantalla.';
+            showView('pending');
+          }
+        });
+      });
+    }
+
+    var loginForm = document.getElementById('loyalty-login-form');
+    if (loginForm) {
+      loginForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        clearFieldError('loyalty-login-error');
+
+        var email = loginForm.querySelector('[name="email"]').value.trim();
+        var password = loginForm.querySelector('[name="password"]').value;
+
+        var submitBtn = loginForm.querySelector('button[type="submit"]');
+        var originalLabel = submitBtn.textContent;
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Entrando…';
+
+        bataterosClient.auth.signInWithPassword({ email: email, password: password }).then(function (res) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = originalLabel;
+
+          if (res.error) {
+            showFieldError('loyalty-login-error', res.error.message);
+            return;
+          }
+          loadCard();
+        });
+      });
+    }
+
+    var pendingRefreshBtn = document.getElementById('loyalty-pending-refresh');
+    if (pendingRefreshBtn) pendingRefreshBtn.addEventListener('click', loadCard);
+
+    var logoutBtn = document.getElementById('loyalty-logout');
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', function () {
+        bataterosClient.auth.signOut().then(function () { showView('register'); });
+      });
+    }
+
+    bataterosClient.auth.onAuthStateChange(function (event) {
+      if (event === 'SIGNED_IN' && !modal.hidden) loadCard();
+    });
+  }
+
   // ─── POPUP RESEÑA + NEWSLETTER ────────────────────────────────────────────
 
   var QR_VISIT_COUNT_KEY   = 'batata_qr_visit_count';
@@ -1731,6 +2015,7 @@
     initTabs();
     initComboModal();
     initVoucher();
+    initLoyalty();
     initParallax();
     initSmoothScroll();
     handleQR();
