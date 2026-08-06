@@ -1315,6 +1315,28 @@
   var LOYALTY_PENDING_KEY = 'batata_loyalty_pending';
   var CLIENTE_COLUMNS = 'id, nombre, apellido, numero_socio, nivel_premiado, created_at';
 
+  // Mismo Apps Script que ya usa el sitio para el voucher del latte y el
+  // newsletter de mesa — le sumamos un tipo nuevo ('batateros_bienvenida')
+  // en vez de armar un mecanismo de mails aparte.
+  var BATATEROS_WELCOME_ENDPOINT = 'https://script.google.com/macros/s/AKfycbxSHDKj-5XNopH7Ntt-Q2airUUzyPrulqEKxyCmpMlR9_W5UB1YVXFE1e8qG_Tdpsa4cw/exec';
+
+  function sendBatakerosBienvenida(pending, numeroSocio) {
+    try {
+      fetch(BATATEROS_WELCOME_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({
+          tipo: 'batateros_bienvenida',
+          nombre: pending.nombre + (pending.apellido ? ' ' + pending.apellido : ''),
+          email: pending.email,
+          numeroSocio: numeroSocio,
+          consentimiento: !!pending.newsletter
+        }),
+        mode: 'no-cors'
+      });
+    } catch (err) {}
+  }
+
   function loyaltyTierClass(index) {
     if (index < 2) return 'is-reached';
     if (index < 4) return 'is-reached-copper';
@@ -1556,6 +1578,7 @@
               });
             return;
           }
+          sendBatakerosBienvenida(pending, res.data.numero_socio);
           renderCard(res.data);
         });
     }
@@ -1795,13 +1818,14 @@
         var telefono = registerForm.querySelector('[name="telefono"]').value.trim();
         var email = registerForm.querySelector('[name="email"]').value.trim();
         var password = registerForm.querySelector('[name="password"]').value;
+        var newsletter = registerForm.querySelector('[name="newsletter"]').checked;
 
         var submitBtn = registerForm.querySelector('button[type="submit"]');
         var originalLabel = submitBtn.textContent;
         submitBtn.disabled = true;
         submitBtn.textContent = 'Creando…';
 
-        var pendingData = { nombre: nombre, apellido: apellido, fecha_nacimiento: fechaNacimiento, telefono: telefono, email: email };
+        var pendingData = { nombre: nombre, apellido: apellido, fecha_nacimiento: fechaNacimiento, telefono: telefono, email: email, newsletter: newsletter };
 
         bataterosClient.auth.signUp({ email: email, password: password }).then(function (res) {
           submitBtn.disabled = false;

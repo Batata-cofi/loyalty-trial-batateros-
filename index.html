@@ -50,7 +50,7 @@
     var bataterosClient = window.supabase.createClient(BATATEROS_SUPABASE_URL, BATATEROS_SUPABASE_ANON_KEY);
   </script>
 
-  <link rel="stylesheet" href="css/styles-v25.css?v=25o">
+  <link rel="stylesheet" href="css/styles-v25.css?v=25p">
 
   <script type="application/ld+json">
   {
@@ -545,6 +545,10 @@
             <span>Contraseña</span>
             <input type="password" name="password" required minlength="6" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
           </label>
+          <label class="loyalty-form__checkbox">
+            <input type="checkbox" name="newsletter" checked>
+            <span>Quiero recibir novedades y promos de Batata por mail</span>
+          </label>
           <p class="loyalty-form__error" id="loyalty-register-error" hidden></p>
           <button type="submit" class="loyalty-form__submit">Crear mi tarjeta</button>
         </form>
@@ -721,6 +725,6 @@
     <span class="mobile-cta-bar__arrow" aria-hidden="true">→</span>
   </a>
 
-  <script src="js/app-v25.js?v=25x"></script>
+  <script src="js/app-v25.js?v=25y"></script>
 </body>
 </html>
