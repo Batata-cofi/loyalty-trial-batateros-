@@ -1447,7 +1447,17 @@
               var fechaReferencia = fechaUltimaCarga || desde;
               var diasInactivo = (Date.now() - new Date(fechaReferencia).getTime()) / 86400000;
               var vencido = diasInactivo > LOYALTY_VENCIMIENTO_DIAS;
-              callback({ puntos: vencido ? 0 : total, fechaReferencia: fechaReferencia, vencido: vencido });
+              // Nivel vigente: baja un escalón por cada LOYALTY_VENCIMIENTO_DIAS de
+              // inactividad (en cascada) — gobierna solo el descuento accesorio.
+              // nivel_premiado (el premio grande ya entregado) nunca se toca acá.
+              var escalonesPerdidos = Math.floor(diasInactivo / LOYALTY_VENCIMIENTO_DIAS);
+              var nivelVigente = Math.max(0, cliente.nivel_premiado - escalonesPerdidos);
+              callback({
+                puntos: vencido ? 0 : total,
+                fechaReferencia: fechaReferencia,
+                vencido: vencido,
+                nivelVigente: nivelVigente
+              });
             });
         });
     }
@@ -1502,13 +1512,18 @@
             ? 'Faltan ' + faltan + ' puntos para ' + LOYALTY_TIER_NAMES[proximo.nivel - 1]
             : '¡Ya podés canjear tu próximo premio!';
         });
-      });
 
-      loadDescuentoActivo(cliente.nivel_premiado, function (descuento) {
         var wrap = document.getElementById('loyalty-descuento');
-        if (!descuento) { wrap.hidden = true; return; }
-        wrap.hidden = false;
-        document.getElementById('loyalty-descuento-text').textContent = descuento.descripcion;
+        if (cliente.nivel_premiado < 2) {
+          wrap.hidden = true;
+        } else {
+          wrap.hidden = false;
+          loadDescuentoActivo(progreso.nivelVigente, function (descuento) {
+            document.getElementById('loyalty-descuento-text').textContent = descuento
+              ? descuento.descripcion
+              : 'Tu beneficio está en pausa por inactividad — volvé a comprar para reactivarlo.';
+          });
+        }
       });
 
       showView('card');
@@ -1680,11 +1695,20 @@
         loadProximoBeneficio(staffCurrentCliente.nivel_premiado, function (proximo) {
           renderStaffCanjeNext(proximo, progreso.puntos);
         });
-      });
 
-      loadDescuentoActivo(staffCurrentCliente.nivel_premiado, function (descuento) {
-        document.getElementById('staff-detail-descuento').textContent =
-          descuento ? descuento.porcentaje + '% (' + descuento.descripcion + ')' : 'Ninguno';
+        var descEl = document.getElementById('staff-detail-descuento');
+        if (staffCurrentCliente.nivel_premiado < 2) {
+          descEl.textContent = 'Ninguno';
+          return;
+        }
+        loadDescuentoActivo(progreso.nivelVigente, function (descuento) {
+          if (!descuento) {
+            descEl.textContent = 'En pausa por inactividad';
+          } else {
+            descEl.textContent = descuento.porcentaje + '% (' + descuento.descripcion + ')' +
+              (progreso.nivelVigente < staffCurrentCliente.nivel_premiado ? ' — bajó por inactividad' : '');
+          }
+        });
       });
     }
 
