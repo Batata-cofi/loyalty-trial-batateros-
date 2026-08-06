@@ -3565,6 +3565,16 @@ body.modal-open { overflow: hidden; }
   text-align: center;
   padding: 8px 22px 0;
 }
+.loyalty-card__tier {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--loyalty-gold);
+  text-align: center;
+  padding: 6px 22px 0;
+}
 .loyalty-card__next {
   font-family: var(--font-sans);
   font-size: 0.8125rem;

@@ -1295,6 +1295,14 @@
   // ─── BATATEROS (loyalty) ───────────────────────────────────────────────────
 
   var LOYALTY_TIERS = [400, 650, 950, 1300, 1700];
+  // Provisorios (Lautaro, 2026-08-06) — pueden cambiar, no son definitivos.
+  var LOYALTY_TIER_NAMES = [
+    'Bienvenida Batatera',
+    'Amigo de la Casa',
+    'Batatero de Ley',
+    'Super Batatero',
+    'Prestige Batata Friend'
+  ];
   var LOYALTY_PENDING_KEY = 'batata_loyalty_pending';
 
   function loyaltyTierClass(index) {
@@ -1311,8 +1319,13 @@
     return reached;
   }
 
+  function loyaltyTierName(points) {
+    var n = loyaltyTierNumber(points);
+    return n > 0 ? LOYALTY_TIER_NAMES[n - 1] : 'Todavía sin nivel';
+  }
+
   function loyaltyTierLabel(points) {
-    return 'Nivel ' + loyaltyTierNumber(points) + ' de ' + LOYALTY_TIERS.length;
+    return 'Nivel ' + loyaltyTierNumber(points) + ' · ' + loyaltyTierName(points);
   }
 
   function formatFechaCorta(iso) {
@@ -1342,12 +1355,13 @@
     track.innerHTML = html;
 
     var nextThreshold = null;
+    var nextIndex = -1;
     for (var j = 0; j < LOYALTY_TIERS.length; j++) {
-      if (points < LOYALTY_TIERS[j]) { nextThreshold = LOYALTY_TIERS[j]; break; }
+      if (points < LOYALTY_TIERS[j]) { nextThreshold = LOYALTY_TIERS[j]; nextIndex = j; break; }
     }
     if (next) {
       next.textContent = nextThreshold
-        ? 'Faltan ' + (nextThreshold - points) + ' puntos para el próximo nivel'
+        ? 'Faltan ' + (nextThreshold - points) + ' puntos para ' + LOYALTY_TIER_NAMES[nextIndex]
         : '¡Nivel máximo alcanzado!';
     }
   }
@@ -1485,6 +1499,7 @@
         cliente.numero_socio ? 'Socio N.° ' + cliente.numero_socio : '';
       loadAccountSummary(cliente.id, function (summary) {
         document.getElementById('loyalty-card-saldo').textContent = summary.saldo;
+        document.getElementById('loyalty-card-tier').textContent = loyaltyTierName(summary.saldo);
         renderLoyaltyTrack(summary.saldo);
         document.getElementById('loyalty-card-vence').textContent = formatFechaVencimiento(summary.proximoVencimiento);
         renderCardRewards(loyaltyTierNumber(summary.saldo), summary.saldo);
