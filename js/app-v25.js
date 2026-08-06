@@ -1293,9 +1293,17 @@
   }
 
   // ─── BATATEROS (loyalty) ───────────────────────────────────────────────────
+  //
+  // Modelo de puntos (definido 2026-08-06): canje SECUENCIAL y OBLIGATORIO,
+  // 1→2→3→4→5, sin saltos. Cada canje resetea el contador a 0 — para
+  // desbloquear el nivel N+1 hay que juntar sus puntos desde cero, no son
+  // acumulativos entre niveles. `clientes_loyalty.nivel_premiado` es el
+  // nivel más alto ya premiado y NUNCA baja (evita doble entrega del mismo
+  // premio pase lo que pase con la inactividad). Lo que sí se resetea por
+  // inactividad (45 días sin cargar puntos) es el AVANCE hacia el próximo
+  // premio, no el nivel ya obtenido — así nunca se re-abre un premio ya dado.
 
   var LOYALTY_TIERS = [400, 650, 950, 1300, 1700];
-  // Provisorios (Lautaro, 2026-08-06) — pueden cambiar, no son definitivos.
   var LOYALTY_TIER_NAMES = [
     'Bienvenida Batatera',
     'Amigo de la Casa',
@@ -1303,7 +1311,9 @@
     'Super Batatero',
     'Prestige Batata Friend'
   ];
+  var LOYALTY_VENCIMIENTO_DIAS = 45;
   var LOYALTY_PENDING_KEY = 'batata_loyalty_pending';
+  var CLIENTE_COLUMNS = 'id, nombre, apellido, numero_socio, nivel_premiado, created_at';
 
   function loyaltyTierClass(index) {
     if (index < 2) return 'is-reached';
@@ -1311,30 +1321,8 @@
     return 'is-reached-gold';
   }
 
-  function loyaltyTierNumber(points) {
-    var reached = 0;
-    for (var i = 0; i < LOYALTY_TIERS.length; i++) {
-      if (points >= LOYALTY_TIERS[i]) reached = i + 1;
-    }
-    return reached;
-  }
-
-  function loyaltyTierName(points) {
-    var n = loyaltyTierNumber(points);
-    return n > 0 ? LOYALTY_TIER_NAMES[n - 1] : 'Todavía sin nivel';
-  }
-
-  function loyaltyTierLabel(points) {
-    return 'Nivel ' + loyaltyTierNumber(points) + ' · ' + loyaltyTierName(points);
-  }
-
-  function formatFechaCorta(iso) {
-    var d = new Date(iso + 'T00:00:00');
-    return d.getDate() + ' de ' + VOUCHER_MONTHS_ES[d.getMonth()];
-  }
-
-  function formatFechaVencimiento(iso) {
-    return iso ? 'Vencen el ' + formatFechaCorta(iso) : 'Sin puntos vigentes';
+  function loyaltyTierName(nivel) {
+    return nivel > 0 ? LOYALTY_TIER_NAMES[nivel - 1] : 'Todavía sin nivel';
   }
 
   function escapeHtml(str) {
@@ -1343,27 +1331,25 @@
     });
   }
 
-  function renderLoyaltyTrack(points) {
+  function addDays(isoOrDate, dias) {
+    var d = new Date(isoOrDate);
+    d.setDate(d.getDate() + dias);
+    return d;
+  }
+
+  function formatFecha(date) {
+    return date.getDate() + ' de ' + VOUCHER_MONTHS_ES[date.getMonth()];
+  }
+
+  function renderLoyaltyTrack(nivelPremiado) {
     var track = document.getElementById('loyalty-card-track');
-    var next  = document.getElementById('loyalty-card-next');
     if (!track) return;
     var html = '';
     for (var i = 0; i < LOYALTY_TIERS.length; i++) {
-      var reached = points >= LOYALTY_TIERS[i];
+      var reached = i < nivelPremiado;
       html += '<span class="loyalty-card__dot' + (reached ? ' ' + loyaltyTierClass(i) : '') + '"></span>';
     }
     track.innerHTML = html;
-
-    var nextThreshold = null;
-    var nextIndex = -1;
-    for (var j = 0; j < LOYALTY_TIERS.length; j++) {
-      if (points < LOYALTY_TIERS[j]) { nextThreshold = LOYALTY_TIERS[j]; nextIndex = j; break; }
-    }
-    if (next) {
-      next.textContent = nextThreshold
-        ? 'Faltan ' + (nextThreshold - points) + ' puntos para ' + LOYALTY_TIER_NAMES[nextIndex]
-        : '¡Nivel máximo alcanzado!';
-    }
   }
 
   function initLoyalty() {
@@ -1380,7 +1366,7 @@
     };
     var lastFocused = null;
     var staffCurrentCliente = null;
-    var staffCurrentSaldo = 0;
+    var staffCurrentProgreso = 0;
     var staffSelectedBeneficio = null;
 
     function showView(name) {
@@ -1431,65 +1417,63 @@
       el.hidden = true;
     }
 
-    // Calculamos el saldo a mano desde puntos/canjes (no desde la vista) para
-    // depender solo de las policies de RLS de las tablas base, ya probadas.
-    // Usado tanto por la tarjeta del cliente como por el panel de staff.
-    function loadAccountSummary(clienteId, callback) {
-      var todayISO = new Date().toISOString().slice(0, 10);
-      Promise.all([
-        bataterosClient.from('puntos').select('puntos_otorgados, fecha_vencimiento').eq('cliente_id', clienteId).eq('estado', 'activo'),
-        bataterosClient.from('canjes').select('puntos_utilizados').eq('cliente_id', clienteId)
-      ]).then(function (results) {
-        var ganados = 0;
-        var proximoVencimiento = null;
-        if (results[0].data) {
-          results[0].data.forEach(function (row) {
-            if (row.fecha_vencimiento >= todayISO) {
-              ganados += row.puntos_otorgados;
-              if (!proximoVencimiento || row.fecha_vencimiento < proximoVencimiento) {
-                proximoVencimiento = row.fecha_vencimiento;
-              }
-            }
-          });
-        }
-        var usados = 0;
-        if (results[1].data) {
-          results[1].data.forEach(function (row) { usados += row.puntos_utilizados; });
-        }
-        callback({ saldo: ganados - usados, proximoVencimiento: proximoVencimiento });
-      });
+    // Avance hacia el próximo premio: puntos cargados desde el último canje
+    // (o desde el alta, si nunca canjeó). Si pasaron más de 45 días desde la
+    // carga más reciente de ese tramo, el avance se considera reseteado a 0
+    // — se calcula al vuelo, no hace falta ningún job para "aplicar" el reset.
+    function loadProgress(cliente, callback) {
+      bataterosClient
+        .from('canjes')
+        .select('fecha')
+        .eq('cliente_id', cliente.id)
+        .order('fecha', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+        .then(function (canjeRes) {
+          var desde = (canjeRes.data && canjeRes.data.fecha) || cliente.created_at;
+          bataterosClient
+            .from('puntos')
+            .select('puntos_otorgados, fecha_acumulado')
+            .eq('cliente_id', cliente.id)
+            .gt('fecha_acumulado', desde)
+            .then(function (puntosRes) {
+              var rows = puntosRes.data || [];
+              var total = 0;
+              var fechaUltimaCarga = null;
+              rows.forEach(function (r) {
+                total += r.puntos_otorgados;
+                if (!fechaUltimaCarga || r.fecha_acumulado > fechaUltimaCarga) fechaUltimaCarga = r.fecha_acumulado;
+              });
+              var fechaReferencia = fechaUltimaCarga || desde;
+              var diasInactivo = (Date.now() - new Date(fechaReferencia).getTime()) / 86400000;
+              var vencido = diasInactivo > LOYALTY_VENCIMIENTO_DIAS;
+              callback({ puntos: vencido ? 0 : total, fechaReferencia: fechaReferencia, vencido: vencido });
+            });
+        });
     }
 
-    // Catálogo de canjes activos, ordenado por nivel/puntos. Se pide una sola
-    // vez por apertura de vista — el catálogo cambia poco, no hace falta
-    // refrescarlo en cada refreshStaffDetailStats().
-    function loadBeneficios(callback) {
+    function loadProximoBeneficio(nivelPremiado, callback) {
+      if (nivelPremiado >= 5) { callback(null); return; }
       bataterosClient
         .from('beneficios')
         .select('id, nivel, nombre, puntos_requeridos')
+        .eq('nivel', nivelPremiado + 1)
         .eq('activo', true)
-        .order('nivel', { ascending: true })
-        .order('puntos_requeridos', { ascending: true })
-        .then(function (res) { callback(res.data || []); });
+        .maybeSingle()
+        .then(function (res) { callback(res.data || null); });
     }
 
-    function renderCardRewards(nivelActual, saldo) {
-      var wrap = document.getElementById('loyalty-rewards');
-      var list = document.getElementById('loyalty-rewards-list');
-      loadBeneficios(function (beneficios) {
-        var disponibles = beneficios.filter(function (b) { return b.nivel <= nivelActual; });
-        if (!disponibles.length) { wrap.hidden = true; return; }
-        wrap.hidden = false;
-        list.innerHTML = disponibles.map(function (b) {
-          var alcanza = saldo >= b.puntos_requeridos;
-          return '<li class="loyalty-reward-item">' +
-            '<span class="loyalty-reward-item__name">' + escapeHtml(b.nombre) + '</span>' +
-            (alcanza
-              ? '<span class="loyalty-reward-item__points">' + b.puntos_requeridos + ' pts</span>'
-              : '<span class="loyalty-reward-item__status">Te faltan ' + (b.puntos_requeridos - saldo) + ' pts</span>') +
-            '</li>';
-        }).join('');
-      });
+    function loadDescuentoActivo(nivelPremiado, callback) {
+      if (nivelPremiado < 2) { callback(null); return; }
+      bataterosClient
+        .from('descuentos_accesorios')
+        .select('nivel, descripcion, porcentaje')
+        .lte('nivel', nivelPremiado)
+        .eq('activo', true)
+        .order('nivel', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+        .then(function (res) { callback(res.data || null); });
     }
 
     function renderCard(cliente) {
@@ -1498,13 +1482,36 @@
         cliente.nombre + (cliente.apellido ? ' ' + cliente.apellido : '');
       document.getElementById('loyalty-card-socio').textContent =
         cliente.numero_socio ? 'Socio N.° ' + cliente.numero_socio : '';
-      loadAccountSummary(cliente.id, function (summary) {
-        document.getElementById('loyalty-card-saldo').textContent = summary.saldo;
-        document.getElementById('loyalty-card-tier').textContent = loyaltyTierName(summary.saldo);
-        renderLoyaltyTrack(summary.saldo);
-        document.getElementById('loyalty-card-vence').textContent = formatFechaVencimiento(summary.proximoVencimiento);
-        renderCardRewards(loyaltyTierNumber(summary.saldo), summary.saldo);
+      document.getElementById('loyalty-card-tier').textContent = loyaltyTierName(cliente.nivel_premiado);
+      renderLoyaltyTrack(cliente.nivel_premiado);
+
+      loadProgress(cliente, function (progreso) {
+        document.getElementById('loyalty-card-saldo').textContent = progreso.puntos;
+        document.getElementById('loyalty-card-vence').textContent = progreso.vencido
+          ? 'Tu avance se reinició por inactividad — ¡volvé a sumar!'
+          : 'Vence el ' + formatFecha(addDays(progreso.fechaReferencia, LOYALTY_VENCIMIENTO_DIAS));
+
+        loadProximoBeneficio(cliente.nivel_premiado, function (proximo) {
+          var nextEl = document.getElementById('loyalty-card-next');
+          if (!proximo) {
+            nextEl.textContent = '¡Llegaste al máximo nivel!';
+            return;
+          }
+          var faltan = Math.max(0, proximo.puntos_requeridos - progreso.puntos);
+          nextEl.textContent = faltan > 0
+            ? 'Faltan ' + faltan + ' puntos para ' + LOYALTY_TIER_NAMES[proximo.nivel - 1]
+            : '¡Ya podés canjear tu próximo premio!';
+        });
       });
+
+      loadDescuentoActivo(cliente.nivel_premiado, function (descuento) {
+        var wrap = document.getElementById('loyalty-descuento');
+        if (!descuento) { wrap.hidden = true; return; }
+        wrap.hidden = false;
+        document.getElementById('loyalty-descuento-text').textContent =
+          descuento.porcentaje + '% off — ' + descuento.descripcion;
+      });
+
       showView('card');
     }
 
@@ -1519,14 +1526,14 @@
           telefono: pending.telefono,
           email: pending.email
         })
-        .select('id, nombre, apellido, numero_socio')
+        .select(CLIENTE_COLUMNS)
         .single()
         .then(function (res) {
           if (res.error) {
             // Puede que la fila ya exista (doble confirmación / reintento) — la releemos.
             bataterosClient
               .from('clientes_loyalty')
-              .select('id, nombre, apellido, numero_socio')
+              .select(CLIENTE_COLUMNS)
               .eq('auth_user_id', userId)
               .maybeSingle()
               .then(function (r2) {
@@ -1563,7 +1570,7 @@
 
       bataterosClient
         .from('clientes_loyalty')
-        .select('id, nombre, apellido, numero_socio, telefono')
+        .select(CLIENTE_COLUMNS + ', telefono')
         .or(orParts.join(','))
         .limit(15)
         .then(function (res) {
@@ -1597,53 +1604,47 @@
       });
     }
 
-    function renderStaffCanjeOptions(nivelActual, saldo) {
+    function renderStaffCanjeNext(proximo, puntosActuales) {
       var list = document.getElementById('staff-canje-options');
       hideCanjeConfirm();
-      loadBeneficios(function (beneficios) {
-        var disponibles = beneficios.filter(function (b) { return b.nivel <= nivelActual; });
-        if (!disponibles.length) {
-          list.innerHTML = '<li class="staff-canje__empty">Sin opciones de canje definidas para este nivel todavía.</li>';
-          return;
-        }
-        list.innerHTML = disponibles.map(function (b) {
-          var alcanza = saldo >= b.puntos_requeridos;
-          return '<li><button type="button" class="staff-canje__btn" data-beneficio-id="' + b.id + '"' +
-            (alcanza ? '' : ' disabled') + '>' +
-            '<span class="staff-canje__btn-name">' + escapeHtml(b.nombre) + '</span>' +
-            '<span class="staff-canje__btn-points">' + b.puntos_requeridos + ' pts</span>' +
-            '</button></li>';
-        }).join('');
-        list.querySelectorAll('[data-beneficio-id]').forEach(function (btn) {
-          btn.addEventListener('click', function () {
-            var id = btn.getAttribute('data-beneficio-id');
-            var beneficio = disponibles.filter(function (b) { return b.id === id; })[0];
-            if (beneficio) selectCanjeOption(beneficio, btn);
-          });
-        });
-      });
+      if (!proximo) {
+        list.innerHTML = '<li class="staff-canje__empty">Ya alcanzó el nivel máximo — no hay más premios para canjear.</li>';
+        return;
+      }
+      var alcanza = puntosActuales >= proximo.puntos_requeridos;
+      list.innerHTML = '<li><button type="button" class="staff-canje__btn" id="staff-canje-btn"' +
+        (alcanza ? '' : ' disabled') + '>' +
+        '<span class="staff-canje__btn-name">' + escapeHtml(proximo.nombre) + '</span>' +
+        '<span class="staff-canje__btn-points">' + proximo.puntos_requeridos + ' pts</span>' +
+        '</button></li>';
+      var btn = document.getElementById('staff-canje-btn');
+      if (btn) {
+        btn.addEventListener('click', function () { selectCanjeOption(proximo, btn); });
+      }
     }
 
     function hideCanjeConfirm() {
       staffSelectedBeneficio = null;
-      document.getElementById('staff-canje-confirm').hidden = true;
-      document.querySelectorAll('#staff-canje-options .staff-canje__btn').forEach(function (b) {
-        b.classList.remove('is-selected');
-      });
+      var confirmEl = document.getElementById('staff-canje-confirm');
+      if (confirmEl) confirmEl.hidden = true;
+      var btn = document.getElementById('staff-canje-btn');
+      if (btn) btn.classList.remove('is-selected');
     }
 
     function selectCanjeOption(beneficio, btnEl) {
       staffSelectedBeneficio = beneficio;
-      document.querySelectorAll('#staff-canje-options .staff-canje__btn').forEach(function (b) {
-        b.classList.toggle('is-selected', b === btnEl);
-      });
+      btnEl.classList.add('is-selected');
       document.getElementById('staff-canje-error').hidden = true;
       document.getElementById('staff-canje-success').hidden = true;
       document.getElementById('staff-canje-confirm-text').textContent =
-        'Quedarán disponibles ' + (staffCurrentSaldo - beneficio.puntos_requeridos) + ' puntos.';
+        'Se entrega el premio y el cliente pasa a Nivel ' + beneficio.nivel + ' · ' + LOYALTY_TIER_NAMES[beneficio.nivel - 1] + '.';
       document.getElementById('staff-canje-confirm').hidden = false;
     }
 
+    // Canje atómico vía función de Postgres: actualiza nivel_premiado e
+    // inserta el canje en la misma transacción, con el nivel anterior como
+    // guarda — imposible que dos clics/canjes casi simultáneos dupliquen
+    // el premio (el segundo choca con la condición y falla).
     function redeemBeneficio(beneficio) {
       var errEl = document.getElementById('staff-canje-error');
       var okEl  = document.getElementById('staff-canje-success');
@@ -1651,38 +1652,40 @@
       okEl.hidden = true;
 
       if (!staffCurrentCliente) return;
-      if (beneficio.puntos_requeridos > staffCurrentSaldo) {
-        errEl.textContent = 'El cliente solo tiene ' + staffCurrentSaldo + ' puntos vigentes.';
-        errEl.hidden = false;
-        return;
-      }
 
-      bataterosClient.from('canjes').insert({
-        cliente_id: staffCurrentCliente.id,
-        puntos_utilizados: beneficio.puntos_requeridos,
-        descripcion: beneficio.nombre,
-        beneficio_id: beneficio.id
+      bataterosClient.rpc('canjear_premio', {
+        p_cliente_id: staffCurrentCliente.id,
+        p_beneficio_id: beneficio.id,
+        p_puntos_utilizados: staffCurrentProgreso
       }).then(function (res) {
         if (res.error) {
           errEl.textContent = res.error.message;
           errEl.hidden = false;
           return;
         }
-        okEl.textContent = 'Canjeado: ' + beneficio.nombre + ' (' + beneficio.puntos_requeridos + ' pts).';
+        okEl.textContent = 'Canjeado: ' + beneficio.nombre + '.';
         okEl.hidden = false;
+        staffCurrentCliente.nivel_premiado = beneficio.nivel;
         refreshStaffDetailStats();
       });
     }
 
     function refreshStaffDetailStats() {
       if (!staffCurrentCliente) return;
-      loadAccountSummary(staffCurrentCliente.id, function (summary) {
-        staffCurrentSaldo = summary.saldo;
-        document.getElementById('staff-detail-saldo').textContent = summary.saldo;
-        document.getElementById('staff-detail-nivel').textContent = loyaltyTierLabel(summary.saldo);
-        document.getElementById('staff-detail-vence').textContent =
-          summary.proximoVencimiento ? formatFechaCorta(summary.proximoVencimiento) : '—';
-        renderStaffCanjeOptions(loyaltyTierNumber(summary.saldo), summary.saldo);
+      document.getElementById('staff-detail-nivel').textContent =
+        'Nivel ' + staffCurrentCliente.nivel_premiado + ' · ' + loyaltyTierName(staffCurrentCliente.nivel_premiado);
+
+      loadProgress(staffCurrentCliente, function (progreso) {
+        staffCurrentProgreso = progreso.puntos;
+        document.getElementById('staff-detail-saldo').textContent = progreso.puntos;
+        loadProximoBeneficio(staffCurrentCliente.nivel_premiado, function (proximo) {
+          renderStaffCanjeNext(proximo, progreso.puntos);
+        });
+      });
+
+      loadDescuentoActivo(staffCurrentCliente.nivel_premiado, function (descuento) {
+        document.getElementById('staff-detail-descuento').textContent =
+          descuento ? descuento.porcentaje + '% (' + descuento.descripcion + ')' : 'Ninguno';
       });
     }
 
@@ -1718,7 +1721,7 @@
 
             bataterosClient
               .from('clientes_loyalty')
-              .select('id, nombre, apellido, numero_socio')
+              .select(CLIENTE_COLUMNS)
               .eq('auth_user_id', session.user.id)
               .maybeSingle()
               .then(function (result) {

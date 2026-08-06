@@ -3687,6 +3687,15 @@ body.modal-open { overflow: hidden; }
 }
 
 .loyalty-rewards { margin-top: 4px; }
+.loyalty-descuento__text {
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  color: var(--ink);
+  background: var(--cream-deep);
+  border: 1px solid var(--cream-darker);
+  border-radius: 4px;
+  padding: 10px 14px;
+}
 .loyalty-rewards__list,
 .staff-canje__list {
   list-style: none;

@@ -50,7 +50,7 @@
     var bataterosClient = window.supabase.createClient(BATATEROS_SUPABASE_URL, BATATEROS_SUPABASE_ANON_KEY);
   </script>
 
-  <link rel="stylesheet" href="css/styles-v25.css?v=25m">
+  <link rel="stylesheet" href="css/styles-v25.css?v=25o">
 
   <script type="application/ld+json">
   {
@@ -584,16 +584,16 @@
           <span class="loyalty-card__socio" id="loyalty-card-socio">—</span>
           <span class="loyalty-card__tier" id="loyalty-card-tier">—</span>
           <div class="loyalty-card__balance">
-            <span class="loyalty-card__balance-label">Puntos vigentes</span>
+            <span class="loyalty-card__balance-label">Puntos hacia tu próximo premio</span>
             <strong class="loyalty-card__balance-value" id="loyalty-card-saldo">0</strong>
           </div>
-          <div class="loyalty-card__track" id="loyalty-card-track" aria-label="Progreso hacia el próximo nivel"></div>
+          <div class="loyalty-card__track" id="loyalty-card-track" aria-label="Niveles alcanzados"></div>
           <p class="loyalty-card__next" id="loyalty-card-next"></p>
           <p class="loyalty-card__vence" id="loyalty-card-vence"></p>
         </div>
-        <div class="loyalty-rewards" id="loyalty-rewards" hidden>
-          <span class="loyalty-rewards__label">Podés canjear</span>
-          <ul class="loyalty-rewards__list" id="loyalty-rewards-list"></ul>
+        <div class="loyalty-rewards" id="loyalty-descuento" hidden>
+          <span class="loyalty-rewards__label">Beneficio vigente</span>
+          <p class="loyalty-descuento__text" id="loyalty-descuento-text"></p>
         </div>
         <button type="button" class="loyalty-modal__switch" id="loyalty-logout">Cerrar sesión</button>
       </div>
@@ -616,7 +616,7 @@
           <p class="staff-detail__meta" id="staff-detail-meta">—</p>
           <div class="staff-detail__stats">
             <div class="staff-detail__stat">
-              <span>Puntos vigentes</span>
+              <span>Puntos hacia el próximo premio</span>
               <strong id="staff-detail-saldo">0</strong>
             </div>
             <div class="staff-detail__stat">
@@ -624,12 +624,12 @@
               <strong id="staff-detail-nivel">—</strong>
             </div>
             <div class="staff-detail__stat">
-              <span>Vencen</span>
-              <strong id="staff-detail-vence">—</strong>
+              <span>Descuento vigente</span>
+              <strong id="staff-detail-descuento">—</strong>
             </div>
           </div>
           <div class="staff-canje">
-            <span class="loyalty-rewards__label">Opciones de canje</span>
+            <span class="loyalty-rewards__label">Próximo premio</span>
             <ul class="staff-canje__list" id="staff-canje-options"></ul>
             <div class="staff-canje__confirm" id="staff-canje-confirm" hidden>
               <p class="staff-canje__confirm-text" id="staff-canje-confirm-text"></p>
@@ -721,6 +721,6 @@
     <span class="mobile-cta-bar__arrow" aria-hidden="true">→</span>
   </a>
 
-  <script src="js/app-v25.js?v=25t"></script>
+  <script src="js/app-v25.js?v=25u"></script>
 </body>
 </html>
