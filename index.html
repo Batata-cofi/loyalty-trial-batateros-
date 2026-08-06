@@ -50,7 +50,7 @@
     var bataterosClient = window.supabase.createClient(BATATEROS_SUPABASE_URL, BATATEROS_SUPABASE_ANON_KEY);
   </script>
 
-  <link rel="stylesheet" href="css/styles-v25.css?v=25h">
+  <link rel="stylesheet" href="css/styles-v25.css?v=25i">
 
   <script type="application/ld+json">
   {
@@ -590,6 +590,10 @@
           <p class="loyalty-card__next" id="loyalty-card-next"></p>
           <p class="loyalty-card__vence" id="loyalty-card-vence"></p>
         </div>
+        <div class="loyalty-rewards" id="loyalty-rewards" hidden>
+          <span class="loyalty-rewards__label">Podés canjear</span>
+          <ul class="loyalty-rewards__list" id="loyalty-rewards-list"></ul>
+        </div>
         <button type="button" class="loyalty-modal__switch" id="loyalty-logout">Cerrar sesión</button>
       </div>
 
@@ -623,19 +627,12 @@
               <strong id="staff-detail-vence">—</strong>
             </div>
           </div>
-          <form class="loyalty-form" id="staff-canje-form">
-            <label class="loyalty-form__field">
-              <span>Puntos a descontar</span>
-              <input type="number" name="puntos" min="1" required>
-            </label>
-            <label class="loyalty-form__field">
-              <span>Qué se canjeó</span>
-              <input type="text" name="descripcion" required placeholder="Ej: medialuna gratis">
-            </label>
+          <div class="staff-canje">
+            <span class="loyalty-rewards__label">Opciones de canje</span>
+            <ul class="staff-canje__list" id="staff-canje-options"></ul>
             <p class="loyalty-form__error" id="staff-canje-error" hidden></p>
             <p class="loyalty-form__success" id="staff-canje-success" hidden></p>
-            <button type="submit" class="loyalty-form__submit">Descontar puntos</button>
-          </form>
+          </div>
         </div>
 
         <button type="button" class="loyalty-modal__switch" id="staff-logout">Cerrar sesión</button>
@@ -716,6 +713,6 @@
     <span class="mobile-cta-bar__arrow" aria-hidden="true">→</span>
   </a>
 
-  <script src="js/app-v25.js?v=25q"></script>
+  <script src="js/app-v25.js?v=25r"></script>
 </body>
 </html>

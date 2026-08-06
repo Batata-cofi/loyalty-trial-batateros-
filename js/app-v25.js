@@ -1303,12 +1303,16 @@
     return 'is-reached-gold';
   }
 
-  function loyaltyTierLabel(points) {
+  function loyaltyTierNumber(points) {
     var reached = 0;
     for (var i = 0; i < LOYALTY_TIERS.length; i++) {
       if (points >= LOYALTY_TIERS[i]) reached = i + 1;
     }
-    return 'Nivel ' + reached + ' de ' + LOYALTY_TIERS.length;
+    return reached;
+  }
+
+  function loyaltyTierLabel(points) {
+    return 'Nivel ' + loyaltyTierNumber(points) + ' de ' + LOYALTY_TIERS.length;
   }
 
   function formatFechaCorta(iso) {
@@ -1441,6 +1445,38 @@
       });
     }
 
+    // Catálogo de canjes activos, ordenado por nivel/puntos. Se pide una sola
+    // vez por apertura de vista — el catálogo cambia poco, no hace falta
+    // refrescarlo en cada refreshStaffDetailStats().
+    function loadBeneficios(callback) {
+      bataterosClient
+        .from('beneficios')
+        .select('id, nivel, nombre, puntos_requeridos')
+        .eq('activo', true)
+        .order('nivel', { ascending: true })
+        .order('puntos_requeridos', { ascending: true })
+        .then(function (res) { callback(res.data || []); });
+    }
+
+    function renderCardRewards(nivelActual, saldo) {
+      var wrap = document.getElementById('loyalty-rewards');
+      var list = document.getElementById('loyalty-rewards-list');
+      loadBeneficios(function (beneficios) {
+        var disponibles = beneficios.filter(function (b) { return b.nivel <= nivelActual; });
+        if (!disponibles.length) { wrap.hidden = true; return; }
+        wrap.hidden = false;
+        list.innerHTML = disponibles.map(function (b) {
+          var alcanza = saldo >= b.puntos_requeridos;
+          return '<li class="loyalty-reward-item">' +
+            '<span class="loyalty-reward-item__name">' + escapeHtml(b.nombre) + '</span>' +
+            (alcanza
+              ? '<span class="loyalty-reward-item__points">' + b.puntos_requeridos + ' pts</span>'
+              : '<span class="loyalty-reward-item__status">Te faltan ' + (b.puntos_requeridos - saldo) + ' pts</span>') +
+            '</li>';
+        }).join('');
+      });
+    }
+
     function renderCard(cliente) {
       clearPending();
       document.getElementById('loyalty-card-nombre').textContent =
@@ -1451,6 +1487,7 @@
         document.getElementById('loyalty-card-saldo').textContent = summary.saldo;
         renderLoyaltyTrack(summary.saldo);
         document.getElementById('loyalty-card-vence').textContent = formatFechaVencimiento(summary.proximoVencimiento);
+        renderCardRewards(loyaltyTierNumber(summary.saldo), summary.saldo);
       });
       showView('card');
     }
@@ -1544,6 +1581,62 @@
       });
     }
 
+    function renderStaffCanjeOptions(nivelActual, saldo) {
+      var list = document.getElementById('staff-canje-options');
+      loadBeneficios(function (beneficios) {
+        var disponibles = beneficios.filter(function (b) { return b.nivel <= nivelActual; });
+        if (!disponibles.length) {
+          list.innerHTML = '<li class="staff-canje__empty">Sin opciones de canje definidas para este nivel todavía.</li>';
+          return;
+        }
+        list.innerHTML = disponibles.map(function (b) {
+          var alcanza = saldo >= b.puntos_requeridos;
+          return '<li><button type="button" class="staff-canje__btn" data-beneficio-id="' + b.id + '"' +
+            (alcanza ? '' : ' disabled') + '>' +
+            '<span class="staff-canje__btn-name">' + escapeHtml(b.nombre) + '</span>' +
+            '<span class="staff-canje__btn-points">' + b.puntos_requeridos + ' pts</span>' +
+            '</button></li>';
+        }).join('');
+        list.querySelectorAll('[data-beneficio-id]').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            var id = btn.getAttribute('data-beneficio-id');
+            var beneficio = disponibles.filter(function (b) { return b.id === id; })[0];
+            if (beneficio) redeemBeneficio(beneficio);
+          });
+        });
+      });
+    }
+
+    function redeemBeneficio(beneficio) {
+      var errEl = document.getElementById('staff-canje-error');
+      var okEl  = document.getElementById('staff-canje-success');
+      errEl.hidden = true;
+      okEl.hidden = true;
+
+      if (!staffCurrentCliente) return;
+      if (beneficio.puntos_requeridos > staffCurrentSaldo) {
+        errEl.textContent = 'El cliente solo tiene ' + staffCurrentSaldo + ' puntos vigentes.';
+        errEl.hidden = false;
+        return;
+      }
+
+      bataterosClient.from('canjes').insert({
+        cliente_id: staffCurrentCliente.id,
+        puntos_utilizados: beneficio.puntos_requeridos,
+        descripcion: beneficio.nombre,
+        beneficio_id: beneficio.id
+      }).then(function (res) {
+        if (res.error) {
+          errEl.textContent = res.error.message;
+          errEl.hidden = false;
+          return;
+        }
+        okEl.textContent = 'Canjeado: ' + beneficio.nombre + ' (' + beneficio.puntos_requeridos + ' pts).';
+        okEl.hidden = false;
+        refreshStaffDetailStats();
+      });
+    }
+
     function refreshStaffDetailStats() {
       if (!staffCurrentCliente) return;
       loadAccountSummary(staffCurrentCliente.id, function (summary) {
@@ -1552,6 +1645,7 @@
         document.getElementById('staff-detail-nivel').textContent = loyaltyTierLabel(summary.saldo);
         document.getElementById('staff-detail-vence').textContent =
           summary.proximoVencimiento ? formatFechaCorta(summary.proximoVencimiento) : '—';
+        renderStaffCanjeOptions(loyaltyTierNumber(summary.saldo), summary.saldo);
       });
     }
 
@@ -1565,7 +1659,6 @@
         'Socio N.° ' + (cliente.numero_socio || '—') + (cliente.telefono ? ' · ' + cliente.telefono : '');
       document.getElementById('staff-canje-error').hidden = true;
       document.getElementById('staff-canje-success').hidden = true;
-      document.getElementById('staff-canje-form').reset();
       refreshStaffDetailStats();
     }
 
@@ -1728,56 +1821,6 @@
       staffDetailBack.addEventListener('click', function () {
         document.getElementById('staff-detail-panel').hidden = true;
         document.getElementById('staff-search-panel').hidden = false;
-      });
-    }
-
-    var staffCanjeForm = document.getElementById('staff-canje-form');
-    if (staffCanjeForm) {
-      staffCanjeForm.addEventListener('submit', function (e) {
-        e.preventDefault();
-        var errEl = document.getElementById('staff-canje-error');
-        var okEl  = document.getElementById('staff-canje-success');
-        errEl.hidden = true;
-        okEl.hidden = true;
-
-        if (!staffCurrentCliente) return;
-
-        var puntos = parseInt(staffCanjeForm.querySelector('[name="puntos"]').value, 10);
-        var descripcion = staffCanjeForm.querySelector('[name="descripcion"]').value.trim();
-
-        if (!puntos || puntos <= 0) {
-          errEl.textContent = 'Ingresá una cantidad de puntos válida.';
-          errEl.hidden = false;
-          return;
-        }
-        if (puntos > staffCurrentSaldo) {
-          errEl.textContent = 'El cliente solo tiene ' + staffCurrentSaldo + ' puntos vigentes.';
-          errEl.hidden = false;
-          return;
-        }
-
-        var submitBtn = staffCanjeForm.querySelector('button[type="submit"]');
-        var originalLabel = submitBtn.textContent;
-        submitBtn.disabled = true;
-        submitBtn.textContent = 'Descontando…';
-
-        bataterosClient.from('canjes').insert({
-          cliente_id: staffCurrentCliente.id,
-          puntos_utilizados: puntos,
-          descripcion: descripcion
-        }).then(function (res) {
-          submitBtn.disabled = false;
-          submitBtn.textContent = originalLabel;
-          if (res.error) {
-            errEl.textContent = res.error.message;
-            errEl.hidden = false;
-            return;
-          }
-          okEl.textContent = 'Descontados ' + puntos + ' puntos.';
-          okEl.hidden = false;
-          staffCanjeForm.reset();
-          refreshStaffDetailStats();
-        });
       });
     }
 
