@@ -3468,6 +3468,10 @@ body.modal-open { overflow: hidden; }
   color: var(--ink-mid);
   line-height: 1.4;
 }
+.loyalty-form__checkbox span a {
+  color: var(--loyalty-borravino);
+  text-decoration: underline;
+}
 .loyalty-form__error {
   font-family: var(--font-sans);
   font-size: 0.8125rem;
