@@ -1382,6 +1382,8 @@
     var views = {
       register: modal.querySelector('[data-loyalty-view="register"]'),
       login:    modal.querySelector('[data-loyalty-view="login"]'),
+      forgot:   modal.querySelector('[data-loyalty-view="forgot"]'),
+      reset:    modal.querySelector('[data-loyalty-view="reset"]'),
       pending:  modal.querySelector('[data-loyalty-view="pending"]'),
       card:     modal.querySelector('[data-loyalty-view="card"]'),
       staff:    modal.querySelector('[data-loyalty-view="staff"]')
@@ -1876,6 +1878,62 @@
       });
     }
 
+    var forgotForm = document.getElementById('loyalty-forgot-form');
+    if (forgotForm) {
+      forgotForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        clearFieldError('loyalty-forgot-error');
+        document.getElementById('loyalty-forgot-success').hidden = true;
+
+        var email = forgotForm.querySelector('[name="email"]').value.trim();
+        var submitBtn = forgotForm.querySelector('button[type="submit"]');
+        var originalLabel = submitBtn.textContent;
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Enviando…';
+
+        bataterosClient.auth.resetPasswordForEmail(email, {
+          redirectTo: window.location.origin + window.location.pathname
+        }).then(function (res) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = originalLabel;
+
+          if (res.error) {
+            showFieldError('loyalty-forgot-error', res.error.message);
+            return;
+          }
+          forgotForm.hidden = true;
+          var okEl = document.getElementById('loyalty-forgot-success');
+          okEl.textContent = 'Te mandamos un link a ' + email + '. Abrilo para elegir una nueva contraseña.';
+          okEl.hidden = false;
+        });
+      });
+    }
+
+    var resetForm = document.getElementById('loyalty-reset-form');
+    if (resetForm) {
+      resetForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        clearFieldError('loyalty-reset-error');
+
+        var password = resetForm.querySelector('[name="password"]').value;
+        var submitBtn = resetForm.querySelector('button[type="submit"]');
+        var originalLabel = submitBtn.textContent;
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Guardando…';
+
+        bataterosClient.auth.updateUser({ password: password }).then(function (res) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = originalLabel;
+
+          if (res.error) {
+            showFieldError('loyalty-reset-error', res.error.message);
+            return;
+          }
+          loadCard();
+        });
+      });
+    }
+
     var pendingRefreshBtn = document.getElementById('loyalty-pending-refresh');
     if (pendingRefreshBtn) pendingRefreshBtn.addEventListener('click', loadCard);
 
@@ -1922,6 +1980,11 @@
     }
 
     bataterosClient.auth.onAuthStateChange(function (event) {
+      if (event === 'PASSWORD_RECOVERY') {
+        openModal();
+        showView('reset');
+        return;
+      }
       if (event === 'SIGNED_IN' && !modal.hidden) loadCard();
     });
   }

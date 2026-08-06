@@ -570,7 +570,35 @@
           <p class="loyalty-form__error" id="loyalty-login-error" hidden></p>
           <button type="submit" class="loyalty-form__submit">Iniciar sesión</button>
         </form>
+        <button type="button" class="loyalty-modal__switch" data-loyalty-switch="forgot">¿Olvidaste tu contraseña?</button>
         <button type="button" class="loyalty-modal__switch" data-loyalty-switch="register">¿No tenés cuenta? Registrate</button>
+      </div>
+
+      <div class="loyalty-view" data-loyalty-view="forgot" hidden>
+        <h3 class="loyalty-modal__title">Recuperar contraseña</h3>
+        <p class="loyalty-modal__subtitle">Te mandamos un link para elegir una nueva.</p>
+        <form class="loyalty-form" id="loyalty-forgot-form">
+          <label class="loyalty-form__field">
+            <span>Email</span>
+            <input type="email" name="email" required placeholder="vos@tuemail.com" autocomplete="email">
+          </label>
+          <p class="loyalty-form__error" id="loyalty-forgot-error" hidden></p>
+          <p class="loyalty-form__success" id="loyalty-forgot-success" hidden></p>
+          <button type="submit" class="loyalty-form__submit">Enviar link</button>
+        </form>
+        <button type="button" class="loyalty-modal__switch" data-loyalty-switch="login">← Volver a iniciar sesión</button>
+      </div>
+
+      <div class="loyalty-view" data-loyalty-view="reset" hidden>
+        <h3 class="loyalty-modal__title">Elegí tu nueva contraseña</h3>
+        <form class="loyalty-form" id="loyalty-reset-form">
+          <label class="loyalty-form__field">
+            <span>Nueva contraseña</span>
+            <input type="password" name="password" required minlength="6" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+          </label>
+          <p class="loyalty-form__error" id="loyalty-reset-error" hidden></p>
+          <button type="submit" class="loyalty-form__submit">Guardar contraseña</button>
+        </form>
       </div>
 
       <div class="loyalty-view" data-loyalty-view="pending" hidden>
@@ -725,6 +753,6 @@
     <span class="mobile-cta-bar__arrow" aria-hidden="true">→</span>
   </a>
 
-  <script src="js/app-v25.js?v=25y"></script>
+  <script src="js/app-v25.js?v=25z"></script>
 </body>
 </html>
