@@ -50,7 +50,7 @@
     var bataterosClient = window.supabase.createClient(BATATEROS_SUPABASE_URL, BATATEROS_SUPABASE_ANON_KEY);
   </script>
 
-  <link rel="stylesheet" href="css/styles-v25.css?v=25g">
+  <link rel="stylesheet" href="css/styles-v25.css?v=25h">
 
   <script type="application/ld+json">
   {
@@ -523,7 +523,11 @@
         <form class="loyalty-form" id="loyalty-register-form">
           <label class="loyalty-form__field">
             <span>Nombre</span>
-            <input type="text" name="nombre" required placeholder="Como te llamás" autocomplete="name">
+            <input type="text" name="nombre" required placeholder="Como te llamás" autocomplete="given-name">
+          </label>
+          <label class="loyalty-form__field">
+            <span>Apellido</span>
+            <input type="text" name="apellido" required placeholder="Tu apellido" autocomplete="family-name">
           </label>
           <label class="loyalty-form__field">
             <span>Fecha de nacimiento</span>
@@ -577,14 +581,64 @@
             <span class="loyalty-card__brand">Batateros</span>
             <span class="loyalty-card__name" id="loyalty-card-nombre">—</span>
           </div>
+          <span class="loyalty-card__socio" id="loyalty-card-socio">—</span>
           <div class="loyalty-card__balance">
             <span class="loyalty-card__balance-label">Puntos vigentes</span>
             <strong class="loyalty-card__balance-value" id="loyalty-card-saldo">0</strong>
           </div>
           <div class="loyalty-card__track" id="loyalty-card-track" aria-label="Progreso hacia el próximo nivel"></div>
           <p class="loyalty-card__next" id="loyalty-card-next"></p>
+          <p class="loyalty-card__vence" id="loyalty-card-vence"></p>
         </div>
         <button type="button" class="loyalty-modal__switch" id="loyalty-logout">Cerrar sesión</button>
+      </div>
+
+      <div class="loyalty-view loyalty-view--staff" data-loyalty-view="staff" hidden>
+        <h3 class="loyalty-modal__title">Panel de staff</h3>
+
+        <div class="staff-panel" id="staff-search-panel">
+          <div class="staff-search">
+            <input type="text" id="staff-search-input" placeholder="Nombre, apellido o N° de socio">
+            <button type="button" id="staff-search-btn" class="loyalty-form__submit">Buscar</button>
+          </div>
+          <p class="loyalty-form__error" id="staff-search-error" hidden></p>
+          <ul class="staff-results" id="staff-results"></ul>
+        </div>
+
+        <div class="staff-panel" id="staff-detail-panel" hidden>
+          <button type="button" class="loyalty-modal__switch staff-detail__back" id="staff-detail-back">← Volver a la búsqueda</button>
+          <h4 class="staff-detail__name" id="staff-detail-name">—</h4>
+          <p class="staff-detail__meta" id="staff-detail-meta">—</p>
+          <div class="staff-detail__stats">
+            <div class="staff-detail__stat">
+              <span>Puntos vigentes</span>
+              <strong id="staff-detail-saldo">0</strong>
+            </div>
+            <div class="staff-detail__stat">
+              <span>Nivel</span>
+              <strong id="staff-detail-nivel">—</strong>
+            </div>
+            <div class="staff-detail__stat">
+              <span>Vencen</span>
+              <strong id="staff-detail-vence">—</strong>
+            </div>
+          </div>
+          <form class="loyalty-form" id="staff-canje-form">
+            <label class="loyalty-form__field">
+              <span>Puntos a descontar</span>
+              <input type="number" name="puntos" min="1" required>
+            </label>
+            <label class="loyalty-form__field">
+              <span>Qué se canjeó</span>
+              <input type="text" name="descripcion" required placeholder="Ej: medialuna gratis">
+            </label>
+            <p class="loyalty-form__error" id="staff-canje-error" hidden></p>
+            <p class="loyalty-form__success" id="staff-canje-success" hidden></p>
+            <button type="submit" class="loyalty-form__submit">Descontar puntos</button>
+          </form>
+        </div>
+
+        <button type="button" class="loyalty-modal__switch" id="staff-logout">Cerrar sesión</button>
       </div>
 
     </div>
@@ -662,6 +716,6 @@
     <span class="mobile-cta-bar__arrow" aria-hidden="true">→</span>
   </a>
 
-  <script src="js/app-v25.js?v=25p"></script>
+  <script src="js/app-v25.js?v=25q"></script>
 </body>
 </html>

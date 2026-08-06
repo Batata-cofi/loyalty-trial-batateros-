@@ -1303,6 +1303,29 @@
     return 'is-reached-gold';
   }
 
+  function loyaltyTierLabel(points) {
+    var reached = 0;
+    for (var i = 0; i < LOYALTY_TIERS.length; i++) {
+      if (points >= LOYALTY_TIERS[i]) reached = i + 1;
+    }
+    return 'Nivel ' + reached + ' de ' + LOYALTY_TIERS.length;
+  }
+
+  function formatFechaCorta(iso) {
+    var d = new Date(iso + 'T00:00:00');
+    return d.getDate() + ' de ' + VOUCHER_MONTHS_ES[d.getMonth()];
+  }
+
+  function formatFechaVencimiento(iso) {
+    return iso ? 'Vencen el ' + formatFechaCorta(iso) : 'Sin puntos vigentes';
+  }
+
+  function escapeHtml(str) {
+    return String(str == null ? '' : str).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
   function renderLoyaltyTrack(points) {
     var track = document.getElementById('loyalty-card-track');
     var next  = document.getElementById('loyalty-card-next');
@@ -1334,9 +1357,12 @@
       register: modal.querySelector('[data-loyalty-view="register"]'),
       login:    modal.querySelector('[data-loyalty-view="login"]'),
       pending:  modal.querySelector('[data-loyalty-view="pending"]'),
-      card:     modal.querySelector('[data-loyalty-view="card"]')
+      card:     modal.querySelector('[data-loyalty-view="card"]'),
+      staff:    modal.querySelector('[data-loyalty-view="staff"]')
     };
     var lastFocused = null;
+    var staffCurrentCliente = null;
+    var staffCurrentSaldo = 0;
 
     function showView(name) {
       Object.keys(views).forEach(function (key) {
@@ -1388,32 +1414,43 @@
 
     // Calculamos el saldo a mano desde puntos/canjes (no desde la vista) para
     // depender solo de las policies de RLS de las tablas base, ya probadas.
-    function loadBalance(clienteId, callback) {
+    // Usado tanto por la tarjeta del cliente como por el panel de staff.
+    function loadAccountSummary(clienteId, callback) {
       var todayISO = new Date().toISOString().slice(0, 10);
       Promise.all([
         bataterosClient.from('puntos').select('puntos_otorgados, fecha_vencimiento').eq('cliente_id', clienteId).eq('estado', 'activo'),
         bataterosClient.from('canjes').select('puntos_utilizados').eq('cliente_id', clienteId)
       ]).then(function (results) {
         var ganados = 0;
+        var proximoVencimiento = null;
         if (results[0].data) {
           results[0].data.forEach(function (row) {
-            if (row.fecha_vencimiento >= todayISO) ganados += row.puntos_otorgados;
+            if (row.fecha_vencimiento >= todayISO) {
+              ganados += row.puntos_otorgados;
+              if (!proximoVencimiento || row.fecha_vencimiento < proximoVencimiento) {
+                proximoVencimiento = row.fecha_vencimiento;
+              }
+            }
           });
         }
         var usados = 0;
         if (results[1].data) {
           results[1].data.forEach(function (row) { usados += row.puntos_utilizados; });
         }
-        callback(ganados - usados);
+        callback({ saldo: ganados - usados, proximoVencimiento: proximoVencimiento });
       });
     }
 
-    function renderCard(clienteId, nombre) {
+    function renderCard(cliente) {
       clearPending();
-      document.getElementById('loyalty-card-nombre').textContent = nombre;
-      loadBalance(clienteId, function (saldo) {
-        document.getElementById('loyalty-card-saldo').textContent = saldo;
-        renderLoyaltyTrack(saldo);
+      document.getElementById('loyalty-card-nombre').textContent =
+        cliente.nombre + (cliente.apellido ? ' ' + cliente.apellido : '');
+      document.getElementById('loyalty-card-socio').textContent =
+        cliente.numero_socio ? 'Socio N.° ' + cliente.numero_socio : '';
+      loadAccountSummary(cliente.id, function (summary) {
+        document.getElementById('loyalty-card-saldo').textContent = summary.saldo;
+        renderLoyaltyTrack(summary.saldo);
+        document.getElementById('loyalty-card-vence').textContent = formatFechaVencimiento(summary.proximoVencimiento);
       });
       showView('card');
     }
@@ -1424,28 +1461,112 @@
         .insert({
           auth_user_id: userId,
           nombre: pending.nombre,
+          apellido: pending.apellido,
           fecha_nacimiento: pending.fecha_nacimiento,
           telefono: pending.telefono,
           email: pending.email
         })
-        .select('id, nombre')
+        .select('id, nombre, apellido, numero_socio')
         .single()
         .then(function (res) {
           if (res.error) {
             // Puede que la fila ya exista (doble confirmación / reintento) — la releemos.
             bataterosClient
               .from('clientes_loyalty')
-              .select('id, nombre')
+              .select('id, nombre, apellido, numero_socio')
               .eq('auth_user_id', userId)
               .maybeSingle()
               .then(function (r2) {
-                if (r2.data) renderCard(r2.data.id, r2.data.nombre);
+                if (r2.data) renderCard(r2.data);
                 else showView('register');
               });
             return;
           }
-          renderCard(res.data.id, res.data.nombre);
+          renderCard(res.data);
         });
+    }
+
+    function resetStaffPanel() {
+      document.getElementById('staff-search-panel').hidden = false;
+      document.getElementById('staff-detail-panel').hidden = true;
+      document.getElementById('staff-search-input').value = '';
+      document.getElementById('staff-results').innerHTML = '';
+      document.getElementById('staff-search-error').hidden = true;
+      staffCurrentCliente = null;
+    }
+
+    function runStaffSearch() {
+      var input = document.getElementById('staff-search-input');
+      var term = input.value.trim();
+      var errEl = document.getElementById('staff-search-error');
+      var resultsEl = document.getElementById('staff-results');
+      errEl.hidden = true;
+      resultsEl.innerHTML = '';
+      if (!term) return;
+
+      var escaped = term.replace(/[%,]/g, '');
+      var orParts = ['nombre.ilike.%' + escaped + '%', 'apellido.ilike.%' + escaped + '%'];
+      if (/^\d+$/.test(term)) orParts.push('numero_socio.eq.' + term);
+
+      bataterosClient
+        .from('clientes_loyalty')
+        .select('id, nombre, apellido, numero_socio, telefono')
+        .or(orParts.join(','))
+        .limit(15)
+        .then(function (res) {
+          if (res.error) {
+            errEl.textContent = res.error.message;
+            errEl.hidden = false;
+            return;
+          }
+          renderStaffResults(res.data || []);
+        });
+    }
+
+    function renderStaffResults(rows) {
+      var resultsEl = document.getElementById('staff-results');
+      if (!rows.length) {
+        resultsEl.innerHTML = '<li class="staff-results__empty">Sin resultados</li>';
+        return;
+      }
+      resultsEl.innerHTML = rows.map(function (c) {
+        return '<li><button type="button" class="staff-results__item" data-cliente-id="' + c.id + '">' +
+          '<strong>' + escapeHtml(c.nombre + (c.apellido ? ' ' + c.apellido : '')) + '</strong>' +
+          '<span>Socio N.° ' + (c.numero_socio || '—') + (c.telefono ? ' · ' + escapeHtml(c.telefono) : '') + '</span>' +
+          '</button></li>';
+      }).join('');
+      resultsEl.querySelectorAll('[data-cliente-id]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var id = btn.getAttribute('data-cliente-id');
+          var row = rows.filter(function (r) { return r.id === id; })[0];
+          if (row) openStaffDetail(row);
+        });
+      });
+    }
+
+    function refreshStaffDetailStats() {
+      if (!staffCurrentCliente) return;
+      loadAccountSummary(staffCurrentCliente.id, function (summary) {
+        staffCurrentSaldo = summary.saldo;
+        document.getElementById('staff-detail-saldo').textContent = summary.saldo;
+        document.getElementById('staff-detail-nivel').textContent = loyaltyTierLabel(summary.saldo);
+        document.getElementById('staff-detail-vence').textContent =
+          summary.proximoVencimiento ? formatFechaCorta(summary.proximoVencimiento) : '—';
+      });
+    }
+
+    function openStaffDetail(cliente) {
+      staffCurrentCliente = cliente;
+      document.getElementById('staff-search-panel').hidden = true;
+      document.getElementById('staff-detail-panel').hidden = false;
+      document.getElementById('staff-detail-name').textContent =
+        cliente.nombre + (cliente.apellido ? ' ' + cliente.apellido : '');
+      document.getElementById('staff-detail-meta').textContent =
+        'Socio N.° ' + (cliente.numero_socio || '—') + (cliente.telefono ? ' · ' + cliente.telefono : '');
+      document.getElementById('staff-canje-error').hidden = true;
+      document.getElementById('staff-canje-success').hidden = true;
+      document.getElementById('staff-canje-form').reset();
+      refreshStaffDetailStats();
     }
 
     function loadCard() {
@@ -1454,21 +1575,34 @@
         if (!session) { showView('register'); return; }
 
         bataterosClient
-          .from('clientes_loyalty')
-          .select('id, nombre')
+          .from('staff_members')
+          .select('id')
           .eq('auth_user_id', session.user.id)
           .maybeSingle()
-          .then(function (result) {
-            if (result.error || !result.data) {
-              var pending = readPending();
-              if (pending) {
-                completeRegistration(session.user.id, pending);
-              } else {
-                showView('register');
-              }
+          .then(function (staffRes) {
+            if (staffRes.data) {
+              showView('staff');
+              resetStaffPanel();
               return;
             }
-            renderCard(result.data.id, result.data.nombre);
+
+            bataterosClient
+              .from('clientes_loyalty')
+              .select('id, nombre, apellido, numero_socio')
+              .eq('auth_user_id', session.user.id)
+              .maybeSingle()
+              .then(function (result) {
+                if (result.error || !result.data) {
+                  var pending = readPending();
+                  if (pending) {
+                    completeRegistration(session.user.id, pending);
+                  } else {
+                    showView('register');
+                  }
+                  return;
+                }
+                renderCard(result.data);
+              });
           });
       });
     }
@@ -1500,6 +1634,7 @@
         clearFieldError('loyalty-register-error');
 
         var nombre = registerForm.querySelector('[name="nombre"]').value.trim();
+        var apellido = registerForm.querySelector('[name="apellido"]').value.trim();
         var fechaNacimiento = registerForm.querySelector('[name="fecha_nacimiento"]').value;
         var telefono = registerForm.querySelector('[name="telefono"]').value.trim();
         var email = registerForm.querySelector('[name="email"]').value.trim();
@@ -1510,7 +1645,7 @@
         submitBtn.disabled = true;
         submitBtn.textContent = 'Creando…';
 
-        var pendingData = { nombre: nombre, fecha_nacimiento: fechaNacimiento, telefono: telefono, email: email };
+        var pendingData = { nombre: nombre, apellido: apellido, fecha_nacimiento: fechaNacimiento, telefono: telefono, email: email };
 
         bataterosClient.auth.signUp({ email: email, password: password }).then(function (res) {
           submitBtn.disabled = false;
@@ -1568,6 +1703,81 @@
     if (logoutBtn) {
       logoutBtn.addEventListener('click', function () {
         bataterosClient.auth.signOut().then(function () { showView('register'); });
+      });
+    }
+
+    var staffLogoutBtn = document.getElementById('staff-logout');
+    if (staffLogoutBtn) {
+      staffLogoutBtn.addEventListener('click', function () {
+        bataterosClient.auth.signOut().then(function () { showView('register'); });
+      });
+    }
+
+    var staffSearchBtn = document.getElementById('staff-search-btn');
+    if (staffSearchBtn) staffSearchBtn.addEventListener('click', runStaffSearch);
+
+    var staffSearchInput = document.getElementById('staff-search-input');
+    if (staffSearchInput) {
+      staffSearchInput.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); runStaffSearch(); }
+      });
+    }
+
+    var staffDetailBack = document.getElementById('staff-detail-back');
+    if (staffDetailBack) {
+      staffDetailBack.addEventListener('click', function () {
+        document.getElementById('staff-detail-panel').hidden = true;
+        document.getElementById('staff-search-panel').hidden = false;
+      });
+    }
+
+    var staffCanjeForm = document.getElementById('staff-canje-form');
+    if (staffCanjeForm) {
+      staffCanjeForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var errEl = document.getElementById('staff-canje-error');
+        var okEl  = document.getElementById('staff-canje-success');
+        errEl.hidden = true;
+        okEl.hidden = true;
+
+        if (!staffCurrentCliente) return;
+
+        var puntos = parseInt(staffCanjeForm.querySelector('[name="puntos"]').value, 10);
+        var descripcion = staffCanjeForm.querySelector('[name="descripcion"]').value.trim();
+
+        if (!puntos || puntos <= 0) {
+          errEl.textContent = 'Ingresá una cantidad de puntos válida.';
+          errEl.hidden = false;
+          return;
+        }
+        if (puntos > staffCurrentSaldo) {
+          errEl.textContent = 'El cliente solo tiene ' + staffCurrentSaldo + ' puntos vigentes.';
+          errEl.hidden = false;
+          return;
+        }
+
+        var submitBtn = staffCanjeForm.querySelector('button[type="submit"]');
+        var originalLabel = submitBtn.textContent;
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Descontando…';
+
+        bataterosClient.from('canjes').insert({
+          cliente_id: staffCurrentCliente.id,
+          puntos_utilizados: puntos,
+          descripcion: descripcion
+        }).then(function (res) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = originalLabel;
+          if (res.error) {
+            errEl.textContent = res.error.message;
+            errEl.hidden = false;
+            return;
+          }
+          okEl.textContent = 'Descontados ' + puntos + ' puntos.';
+          okEl.hidden = false;
+          staffCanjeForm.reset();
+          refreshStaffDetailStats();
+        });
       });
     }
 
