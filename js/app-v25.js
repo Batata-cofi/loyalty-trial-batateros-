@@ -1562,7 +1562,8 @@
           apellido: pending.apellido,
           fecha_nacimiento: pending.fecha_nacimiento,
           telefono: pending.telefono,
-          email: pending.email
+          email: pending.email,
+          newsletter: !!pending.newsletter
         })
         .select(CLIENTE_COLUMNS)
         .single()
