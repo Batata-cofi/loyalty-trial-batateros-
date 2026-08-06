@@ -1300,7 +1300,7 @@
   // acumulativos entre niveles. `clientes_loyalty.nivel_premiado` es el
   // nivel más alto ya premiado y NUNCA baja (evita doble entrega del mismo
   // premio pase lo que pase con la inactividad). Lo que sí se resetea por
-  // inactividad (45 días sin cargar puntos) es el AVANCE hacia el próximo
+  // inactividad (LOYALTY_VENCIMIENTO_DIAS sin cargar puntos) es el AVANCE hacia el próximo
   // premio, no el nivel ya obtenido — así nunca se re-abre un premio ya dado.
 
   var LOYALTY_TIERS = [400, 650, 950, 1300, 1700];
@@ -1311,7 +1311,7 @@
     'Super Batatero',
     'Prestige Batata Friend'
   ];
-  var LOYALTY_VENCIMIENTO_DIAS = 45;
+  var LOYALTY_VENCIMIENTO_DIAS = 30;
   var LOYALTY_PENDING_KEY = 'batata_loyalty_pending';
   var CLIENTE_COLUMNS = 'id, nombre, apellido, numero_socio, nivel_premiado, created_at';
 
@@ -1418,7 +1418,7 @@
     }
 
     // Avance hacia el próximo premio: puntos cargados desde el último canje
-    // (o desde el alta, si nunca canjeó). Si pasaron más de 45 días desde la
+    // (o desde el alta, si nunca canjeó). Si pasaron más de LOYALTY_VENCIMIENTO_DIAS días desde la
     // carga más reciente de ese tramo, el avance se considera reseteado a 0
     // — se calcula al vuelo, no hace falta ningún job para "aplicar" el reset.
     function loadProgress(cliente, callback) {
