@@ -1381,6 +1381,7 @@
     var lastFocused = null;
     var staffCurrentCliente = null;
     var staffCurrentSaldo = 0;
+    var staffSelectedBeneficio = null;
 
     function showView(name) {
       Object.keys(views).forEach(function (key) {
@@ -1598,6 +1599,7 @@
 
     function renderStaffCanjeOptions(nivelActual, saldo) {
       var list = document.getElementById('staff-canje-options');
+      hideCanjeConfirm();
       loadBeneficios(function (beneficios) {
         var disponibles = beneficios.filter(function (b) { return b.nivel <= nivelActual; });
         if (!disponibles.length) {
@@ -1616,10 +1618,30 @@
           btn.addEventListener('click', function () {
             var id = btn.getAttribute('data-beneficio-id');
             var beneficio = disponibles.filter(function (b) { return b.id === id; })[0];
-            if (beneficio) redeemBeneficio(beneficio);
+            if (beneficio) selectCanjeOption(beneficio, btn);
           });
         });
       });
+    }
+
+    function hideCanjeConfirm() {
+      staffSelectedBeneficio = null;
+      document.getElementById('staff-canje-confirm').hidden = true;
+      document.querySelectorAll('#staff-canje-options .staff-canje__btn').forEach(function (b) {
+        b.classList.remove('is-selected');
+      });
+    }
+
+    function selectCanjeOption(beneficio, btnEl) {
+      staffSelectedBeneficio = beneficio;
+      document.querySelectorAll('#staff-canje-options .staff-canje__btn').forEach(function (b) {
+        b.classList.toggle('is-selected', b === btnEl);
+      });
+      document.getElementById('staff-canje-error').hidden = true;
+      document.getElementById('staff-canje-success').hidden = true;
+      document.getElementById('staff-canje-confirm-text').textContent =
+        'Quedarán disponibles ' + (staffCurrentSaldo - beneficio.puntos_requeridos) + ' puntos.';
+      document.getElementById('staff-canje-confirm').hidden = false;
     }
 
     function redeemBeneficio(beneficio) {
@@ -1836,6 +1858,16 @@
       staffDetailBack.addEventListener('click', function () {
         document.getElementById('staff-detail-panel').hidden = true;
         document.getElementById('staff-search-panel').hidden = false;
+      });
+    }
+
+    var staffCanjeCancelBtn = document.getElementById('staff-canje-cancel-btn');
+    if (staffCanjeCancelBtn) staffCanjeCancelBtn.addEventListener('click', hideCanjeConfirm);
+
+    var staffCanjeConfirmBtn = document.getElementById('staff-canje-confirm-btn');
+    if (staffCanjeConfirmBtn) {
+      staffCanjeConfirmBtn.addEventListener('click', function () {
+        if (staffSelectedBeneficio) redeemBeneficio(staffSelectedBeneficio);
       });
     }
 

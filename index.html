@@ -50,7 +50,7 @@
     var bataterosClient = window.supabase.createClient(BATATEROS_SUPABASE_URL, BATATEROS_SUPABASE_ANON_KEY);
   </script>
 
-  <link rel="stylesheet" href="css/styles-v25.css?v=25j">
+  <link rel="stylesheet" href="css/styles-v25.css?v=25k">
 
   <script type="application/ld+json">
   {
@@ -631,6 +631,13 @@
           <div class="staff-canje">
             <span class="loyalty-rewards__label">Opciones de canje</span>
             <ul class="staff-canje__list" id="staff-canje-options"></ul>
+            <div class="staff-canje__confirm" id="staff-canje-confirm" hidden>
+              <p class="staff-canje__confirm-text" id="staff-canje-confirm-text"></p>
+              <div class="staff-canje__confirm-actions">
+                <button type="button" class="loyalty-modal__switch" id="staff-canje-cancel-btn">Cancelar</button>
+                <button type="button" class="loyalty-form__submit" id="staff-canje-confirm-btn">Confirmar</button>
+              </div>
+            </div>
             <p class="loyalty-form__error" id="staff-canje-error" hidden></p>
             <p class="loyalty-form__success" id="staff-canje-success" hidden></p>
           </div>
@@ -714,6 +721,6 @@
     <span class="mobile-cta-bar__arrow" aria-hidden="true">→</span>
   </a>
 
-  <script src="js/app-v25.js?v=25s"></script>
+  <script src="js/app-v25.js?v=25t"></script>
 </body>
 </html>
