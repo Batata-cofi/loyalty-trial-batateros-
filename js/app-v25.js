@@ -1508,8 +1508,7 @@
         var wrap = document.getElementById('loyalty-descuento');
         if (!descuento) { wrap.hidden = true; return; }
         wrap.hidden = false;
-        document.getElementById('loyalty-descuento-text').textContent =
-          descuento.porcentaje + '% off — ' + descuento.descripcion;
+        document.getElementById('loyalty-descuento-text').textContent = descuento.descripcion;
       });
 
       showView('card');
