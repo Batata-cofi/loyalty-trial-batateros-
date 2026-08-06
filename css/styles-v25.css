@@ -3409,6 +3409,7 @@ body.modal-open { overflow: hidden; }
   position: relative;
   max-height: 90vh;
   overflow-y: auto;
+  overflow-x: hidden;
 }
 .loyalty-modal__title {
   font-family: var(--font-display);
@@ -3597,6 +3598,7 @@ body.modal-open { overflow: hidden; }
   max-width: 560px;
 }
 .staff-panel { display: flex; flex-direction: column; gap: 14px; }
+.staff-panel[hidden] { display: none; }
 .staff-search {
   display: flex;
   gap: 8px;
