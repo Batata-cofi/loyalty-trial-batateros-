@@ -3866,6 +3866,22 @@ body.modal-open { overflow: hidden; }
   justify-content: center;
   margin: 0 auto 16px;
 }
+.club-badge--logo {
+  width: auto;
+  height: 44px;
+  background: none;
+  border-radius: 0;
+}
+.club-badge--logo img {
+  height: 100%;
+  width: auto;
+  display: block;
+}
+.loyalty-card__brand-logo {
+  height: 20px;
+  width: auto;
+  display: block;
+}
 
 .club-tabs {
   display: flex;
