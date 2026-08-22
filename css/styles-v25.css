@@ -3382,11 +3382,6 @@ body.modal-open { overflow: hidden; }
 }
 .loyalty-modal[hidden] { display: none; }
 .loyalty-modal.is-visible { opacity: 1; }
-
-@media (max-width: 480px) {
-  .loyalty-modal { padding: 8px; }
-  .loyalty-modal__content { max-height: 96vh; padding: 24px 18px; }
-}
 .loyalty-modal__close {
   position: absolute;
   top: 20px;
@@ -4296,4 +4291,22 @@ body.modal-open { overflow: hidden; }
   .club-hero { gap: 12px; }
   .club-hero-img { width: 84px; height: 84px; border-radius: 12px; }
   .club-h1 { font-size: 1.25rem; }
+}
+
+@media (max-width: 480px) {
+  .loyalty-modal { padding: 8px; }
+  .loyalty-modal__content { max-height: 96vh; padding: 24px 18px; }
+}
+
+@media (max-height: 700px) {
+  .club-hero { margin-bottom: 10px; }
+  .club-hero-img { width: 64px; height: 64px; }
+  .club-eyebrow { margin-bottom: 3px; }
+  .club-h1 { margin-bottom: 4px; font-size: 1.25rem; }
+  .club-sub { display: none; }
+  .loyalty-card__balance { padding-top: 10px; }
+  .loyalty-card__balance-value { font-size: 1.875rem; }
+  .loyalty-card__track { padding-top: 10px; }
+  #club-panel-inicio .club-section-label { margin-top: 10px; margin-bottom: 6px; }
+  .club-activity-last { padding: 9px 14px; }
 }
