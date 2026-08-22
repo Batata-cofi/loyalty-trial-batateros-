@@ -4456,4 +4456,13 @@ body.modal-open { overflow: hidden; }
   .club-tier-badge { width: 28px; height: 28px; font-size: 0.6875rem; }
   .club-tier-meta { display: none; }
   #club-panel-premios .club-section-label { margin-top: 10px; margin-bottom: 5px; }
+
+  .loyalty-view--staff .club-badge--logo { width: 42px; height: 42px; margin-bottom: 6px; }
+  .loyalty-view--staff .loyalty-modal__title { margin-bottom: 12px; font-size: 1.5rem; }
+  .staff-detail__header { margin-bottom: 10px; }
+  .staff-detail__avatar { width: 38px; height: 38px; font-size: 0.8125rem; }
+  .staff-detail__balance { padding: 12px 20px 10px; }
+  .staff-detail__balance strong { font-size: 1.75rem; }
+  .staff-detail__chip { padding: 8px 10px; }
+  .staff-canje > .club-section-label { margin: 12px 0 6px; }
 }
