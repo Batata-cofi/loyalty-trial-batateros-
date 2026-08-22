@@ -1696,14 +1696,17 @@
 
         loadProximoBeneficio(cliente.nivel_premiado, function (proximo) {
           var nextEl = document.getElementById('loyalty-card-next');
+          var rewardEl = document.getElementById('loyalty-card-reward');
           if (!proximo) {
             nextEl.textContent = '¡Llegaste al máximo nivel!';
+            rewardEl.textContent = '';
             return;
           }
           var faltan = Math.max(0, proximo.puntos_requeridos - progreso.puntos);
           nextEl.textContent = faltan > 0
             ? 'Faltan ' + faltan + ' puntos para ' + LOYALTY_TIER_NAMES[proximo.nivel - 1]
             : '¡Ya podés canjear tu próximo premio!';
+          rewardEl.textContent = proximo.nombre || '';
         });
 
         var wrap = document.getElementById('loyalty-descuento');
@@ -1988,6 +1991,27 @@
         modal.querySelectorAll('.club-panel').forEach(function (p) { p.classList.toggle('is-active', p.id === 'club-panel-' + name); });
       });
     });
+
+    if (views.card) {
+      var clubTabOrder = ['inicio', 'premios', 'perfil'];
+      var swipeStartX = 0;
+      var swipeStartY = 0;
+      views.card.addEventListener('touchstart', function (e) {
+        swipeStartX = e.changedTouches[0].clientX;
+        swipeStartY = e.changedTouches[0].clientY;
+      }, { passive: true });
+      views.card.addEventListener('touchend', function (e) {
+        var dx = e.changedTouches[0].clientX - swipeStartX;
+        var dy = e.changedTouches[0].clientY - swipeStartY;
+        if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+        var activeBtn = modal.querySelector('[data-club-tab].is-active');
+        var idx = clubTabOrder.indexOf(activeBtn ? activeBtn.getAttribute('data-club-tab') : 'inicio');
+        var nextIdx = dx < 0 ? idx + 1 : idx - 1;
+        if (nextIdx < 0 || nextIdx >= clubTabOrder.length) return;
+        var nextBtn = modal.querySelector('[data-club-tab="' + clubTabOrder[nextIdx] + '"]');
+        if (nextBtn) nextBtn.click();
+      }, { passive: true });
+    }
 
     var activityLastBtn = document.getElementById('club-activity-last');
     if (activityLastBtn) activityLastBtn.addEventListener('click', openActividadModal);

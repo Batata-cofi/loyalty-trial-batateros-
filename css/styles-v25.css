@@ -3382,6 +3382,11 @@ body.modal-open { overflow: hidden; }
 }
 .loyalty-modal[hidden] { display: none; }
 .loyalty-modal.is-visible { opacity: 1; }
+
+@media (max-width: 480px) {
+  .loyalty-modal { padding: 8px; }
+  .loyalty-modal__content { max-height: 96vh; padding: 24px 18px; }
+}
 .loyalty-modal__close {
   position: absolute;
   top: 20px;
@@ -3520,12 +3525,12 @@ body.modal-open { overflow: hidden; }
   color: var(--ink);
   border-radius: 16px;
   overflow: hidden;
-  margin-bottom: 18px;
+  margin-bottom: 14px;
   border: 1px solid var(--cream-darker);
   box-shadow: 0 16px 36px rgba(139, 42, 74, 0.12);
 }
 .loyalty-card__top {
-  padding: 16px 22px;
+  padding: 12px 22px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -3543,7 +3548,7 @@ body.modal-open { overflow: hidden; }
   color: var(--ink-mid);
 }
 .loyalty-card__balance {
-  padding: 26px 22px 6px;
+  padding: 16px 22px 4px;
   text-align: center;
 }
 .loyalty-card__balance-label {
@@ -3554,18 +3559,18 @@ body.modal-open { overflow: hidden; }
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--ink-mid);
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 .loyalty-card__balance-value {
   font-family: var(--font-display);
-  font-size: 2.75rem;
+  font-size: 2.25rem;
   font-weight: 800;
   color: var(--loyalty-borravino);
 }
 .loyalty-card__track {
   display: flex;
   gap: 5px;
-  padding: 22px 22px 4px;
+  padding: 14px 22px 4px;
 }
 .loyalty-card__dot {
   flex: 1;
@@ -3583,7 +3588,7 @@ body.modal-open { overflow: hidden; }
   letter-spacing: 0.08em;
   color: var(--ink-light);
   text-align: center;
-  padding: 8px 22px 0;
+  padding: 6px 22px 0;
 }
 .loyalty-card__tier {
   display: block;
@@ -3593,21 +3598,29 @@ body.modal-open { overflow: hidden; }
   letter-spacing: 0.02em;
   color: var(--loyalty-copper);
   text-align: center;
-  padding: 6px 22px 0;
+  padding: 4px 22px 0;
 }
 .loyalty-card__next {
   font-family: var(--font-sans);
   font-size: 0.8125rem;
   color: var(--ink-mid);
   text-align: center;
-  padding: 10px 22px 4px;
+  padding: 8px 22px 0;
+}
+.loyalty-card__reward {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--loyalty-borravino);
+  text-align: center;
+  padding: 3px 22px 0;
 }
 .loyalty-card__vence {
   font-family: var(--font-sans);
   font-size: 0.75rem;
   color: var(--ink-light);
   text-align: center;
-  padding: 0 22px 22px;
+  padding: 0 22px 16px;
   font-style: italic;
 }
 
@@ -3924,6 +3937,7 @@ body.modal-open { overflow: hidden; }
   color: var(--ink-mid);
   margin: 26px 0 10px;
 }
+#club-panel-inicio .club-section-label { margin-top: 14px; }
 
 /* Premios: lista de niveles */
 .club-tier-row {
@@ -4095,8 +4109,8 @@ body.modal-open { overflow: hidden; }
 .club-hero {
   display: flex;
   align-items: center;
-  gap: 18px;
-  margin-bottom: 22px;
+  gap: 16px;
+  margin-bottom: 14px;
 }
 .club-hero-text { flex: 1; min-width: 0; }
 .club-eyebrow {
@@ -4206,7 +4220,7 @@ body.modal-open { overflow: hidden; }
   align-items: center;
   gap: 14px;
   width: 100%;
-  padding: 14px 16px;
+  padding: 11px 16px;
   background: #fff;
   border: 1px solid var(--cream-darker);
   border-radius: 12px;
