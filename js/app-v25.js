@@ -1585,16 +1585,64 @@
       };
     }
 
+    function formatRelativo(iso) {
+      var d = new Date(iso);
+      var diffDias = Math.floor((Date.now() - d.getTime()) / 86400000);
+      if (diffDias <= 0) return 'Hoy';
+      if (diffDias === 1) return 'Ayer';
+      if (diffDias < 7) return 'Hace ' + diffDias + ' días';
+      if (diffDias < 30) {
+        var semanas = Math.floor(diffDias / 7);
+        return 'Hace ' + semanas + (semanas === 1 ? ' semana' : ' semanas');
+      }
+      if (diffDias < 365) {
+        var meses = Math.floor(diffDias / 30);
+        return 'Hace ' + meses + (meses === 1 ? ' mes' : ' meses');
+      }
+      var anios = Math.floor(diffDias / 365);
+      return 'Hace ' + anios + (anios === 1 ? ' año' : ' años');
+    }
+
+    function formatMonto(n) {
+      return '$' + Math.round(n || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    }
+
+    function renderActividadReciente(cliente) {
+      var listEl = document.getElementById('club-activity-list');
+      bataterosClient
+        .from('puntos')
+        .select('monto_compra, puntos_otorgados, fecha_acumulado')
+        .eq('cliente_id', cliente.id)
+        .order('fecha_acumulado', { ascending: false })
+        .limit(3)
+        .then(function (res) {
+          var rows = res.data || [];
+          if (!rows.length) {
+            listEl.innerHTML = '<div class="club-activity-empty">Todavía no registrás compras. ¡Tu próxima compra suma acá!</div>';
+            return;
+          }
+          listEl.innerHTML = rows.map(function (r) {
+            return '<div class="club-activity-row">' +
+              '<div class="club-activity-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--loyalty-borravino)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13a3 3 0 0 1 0 6h-1"/><path d="M4 8v8a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3v-2"/></svg></div>' +
+              '<div class="club-activity-desc"><strong>Compra en Batata Cofi</strong><small>' + formatRelativo(r.fecha_acumulado) + ' · ' + formatMonto(r.monto_compra) + '</small></div>' +
+              '<span class="club-activity-pts">+' + r.puntos_otorgados + ' pts</span>' +
+              '</div>';
+          }).join('');
+        });
+    }
+
     function renderCard(cliente) {
       clearPending();
       document.getElementById('loyalty-card-nombre').textContent =
         cliente.nombre + (cliente.apellido ? ' ' + cliente.apellido : '');
+      document.getElementById('club-hero-nombre').textContent = cliente.nombre || '—';
       document.getElementById('loyalty-card-socio').textContent =
         cliente.numero_socio ? 'Socio N.° ' + cliente.numero_socio : '';
       document.getElementById('loyalty-card-tier').textContent = loyaltyTierName(cliente.nivel_premiado);
       renderLoyaltyTrack(cliente.nivel_premiado);
       renderPremiosTab(cliente);
       renderPerfilTab(cliente);
+      renderActividadReciente(cliente);
 
       loadProgress(cliente, function (progreso) {
         document.getElementById('loyalty-card-saldo').textContent = progreso.puntos;

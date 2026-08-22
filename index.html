@@ -50,7 +50,7 @@
     var bataterosClient = window.supabase.createClient(BATATEROS_SUPABASE_URL, BATATEROS_SUPABASE_ANON_KEY);
   </script>
 
-  <link rel="stylesheet" href="css/styles-v25.css?v=25t">
+  <link rel="stylesheet" href="css/styles-v25.css?v=25u">
 
   <script type="application/ld+json">
   {
@@ -627,6 +627,17 @@
         </div>
 
         <div class="club-panel is-active" id="club-panel-inicio">
+          <div class="club-hero">
+            <div class="club-hero-text">
+              <span class="club-eyebrow">Qué bueno verte de nuevo</span>
+              <h1 class="club-h1" id="club-hero-nombre">—</h1>
+              <p class="club-sub">Cada compra suma. Así vas viendo tu progreso hacia el próximo premio.</p>
+            </div>
+            <div class="club-hero-img">
+              <img src="img/batateros-ilustracion.png" alt="Ilustración Batata Cofi">
+            </div>
+          </div>
+
           <div class="loyalty-card">
             <div class="loyalty-card__top">
               <span class="loyalty-card__brand"><img class="loyalty-card__brand-logo" src="img/batateros-club-logo.png" alt="Batateros Club"></span>
@@ -646,6 +657,9 @@
             <span class="loyalty-rewards__label">Beneficio vigente</span>
             <p class="loyalty-descuento__text" id="loyalty-descuento-text"></p>
           </div>
+
+          <span class="club-section-label">Actividad reciente</span>
+          <div class="club-activity-list" id="club-activity-list"></div>
         </div>
 
         <div class="club-panel" id="club-panel-premios">
@@ -809,6 +823,6 @@
     <span class="mobile-cta-bar__arrow" aria-hidden="true">→</span>
   </a>
 
-  <script src="js/app-v25.js?v=26b"></script>
+  <script src="js/app-v25.js?v=26c"></script>
 </body>
 </html>
