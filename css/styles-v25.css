@@ -3530,7 +3530,7 @@ body.modal-open { overflow: hidden; }
   justify-content: space-between;
   align-items: center;
   border-bottom: none;
-  background: rgba(139, 42, 74, 0.06);
+  background: linear-gradient(135deg, var(--loyalty-borravino), #6e2039);
 }
 .loyalty-card__brand {
   display: flex;
@@ -3540,7 +3540,7 @@ body.modal-open { overflow: hidden; }
   font-family: var(--font-sans);
   font-size: 0.8125rem;
   font-weight: 600;
-  color: var(--ink-mid);
+  color: rgba(255, 255, 255, 0.9);
 }
 .loyalty-card__balance {
   padding: 26px 22px 6px;
