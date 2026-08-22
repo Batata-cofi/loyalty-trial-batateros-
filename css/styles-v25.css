@@ -3933,13 +3933,14 @@ body.modal-open { overflow: hidden; }
   margin: 26px 0 10px;
 }
 #club-panel-inicio .club-section-label { margin-top: 14px; }
+#club-panel-premios .club-section-label { margin-top: 14px; margin-bottom: 6px; }
 
 /* Premios: lista de niveles */
 .club-tier-row {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 12px 16px 12px 10px;
+  gap: 12px;
+  padding: 9px 14px 9px 10px;
   border-radius: 12px;
   background: #fff;
   border: 1px solid var(--cream-darker);
@@ -3951,13 +3952,13 @@ body.modal-open { overflow: hidden; }
   transition: border-color 150ms ease;
 }
 .club-tier-row:hover { border-color: var(--loyalty-copper); }
-.club-tier-row + .club-tier-row { margin-top: 8px; }
+.club-tier-row + .club-tier-row { margin-top: 6px; }
 .club-tier-row.is-done { border-color: var(--loyalty-borravino); background: rgba(139, 42, 74, 0.06); }
 .club-tier-row.is-current { border: 1.5px solid var(--loyalty-copper); }
 .club-tier-row.is-locked { opacity: 0.55; }
 .club-tier-badge {
-  width: 40px;
-  height: 40px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   flex-shrink: 0;
   display: flex;
@@ -3965,13 +3966,21 @@ body.modal-open { overflow: hidden; }
   justify-content: center;
   font-family: var(--font-sans);
   font-weight: 700;
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   color: #fff;
 }
 .club-tier-info { flex-grow: 1; min-width: 0; }
-.club-tier-name { font-family: var(--font-sans); font-weight: 700; font-size: 0.875rem; color: var(--ink); }
-.club-tier-meta { font-family: var(--font-sans); font-size: 0.75rem; color: var(--ink-mid); margin-top: 2px; }
-.club-tier-premio { font-family: var(--font-sans); font-size: 0.6875rem; color: var(--loyalty-copper); margin-top: 3px; }
+.club-tier-name { font-family: var(--font-sans); font-weight: 700; font-size: 0.8125rem; color: var(--ink); }
+.club-tier-meta { font-family: var(--font-sans); font-size: 0.6875rem; color: var(--ink-mid); margin-top: 1px; }
+.club-tier-premio {
+  font-family: var(--font-sans);
+  font-size: 0.6875rem;
+  color: var(--loyalty-copper);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .club-tier-tag {
   font-family: var(--font-accent);
   font-weight: 700;
@@ -4350,4 +4359,10 @@ body.modal-open { overflow: hidden; }
   .loyalty-card__track { padding-top: 10px; }
   #club-panel-inicio .club-section-label { margin-top: 10px; margin-bottom: 6px; }
   .club-activity-last { padding: 9px 14px; }
+
+  .club-tier-row { padding: 7px 12px 7px 8px; gap: 10px; }
+  .club-tier-row + .club-tier-row { margin-top: 5px; }
+  .club-tier-badge { width: 28px; height: 28px; font-size: 0.6875rem; }
+  .club-tier-meta { display: none; }
+  #club-panel-premios .club-section-label { margin-top: 10px; margin-bottom: 5px; }
 }
