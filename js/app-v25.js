@@ -1854,8 +1854,9 @@
       }
       resultsEl.innerHTML = rows.map(function (c) {
         return '<li><button type="button" class="staff-results__item" data-cliente-id="' + c.id + '">' +
-          '<strong>' + escapeHtml(c.nombre + (c.apellido ? ' ' + c.apellido : '')) + '</strong>' +
-          '<span>Socio N.° ' + (c.numero_socio || '—') + (c.telefono ? ' · ' + escapeHtml(c.telefono) : '') + '</span>' +
+          '<span class="staff-results__avatar">' + iniciales(c.nombre, c.apellido) + '</span>' +
+          '<span class="staff-results__text"><strong>' + escapeHtml(c.nombre + (c.apellido ? ' ' + c.apellido : '')) + '</strong>' +
+          '<span>Socio N.° ' + (c.numero_socio || '—') + (c.telefono ? ' · ' + escapeHtml(c.telefono) : '') + '</span></span>' +
           '</button></li>';
       }).join('');
       resultsEl.querySelectorAll('[data-cliente-id]').forEach(function (btn) {
@@ -1965,6 +1966,7 @@
       staffCurrentCliente = cliente;
       document.getElementById('staff-search-panel').hidden = true;
       document.getElementById('staff-detail-panel').hidden = false;
+      document.getElementById('staff-detail-avatar').textContent = iniciales(cliente.nombre, cliente.apellido);
       document.getElementById('staff-detail-name').textContent =
         cliente.nombre + (cliente.apellido ? ' ' + cliente.apellido : '');
       document.getElementById('staff-detail-meta').textContent =

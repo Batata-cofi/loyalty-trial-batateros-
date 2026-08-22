@@ -3624,6 +3624,9 @@ body.modal-open { overflow: hidden; }
 .loyalty-modal__content:has(.loyalty-view--staff:not([hidden])) {
   max-width: 560px;
 }
+.loyalty-view--staff .club-badge--logo { margin-bottom: 10px; }
+.loyalty-view--staff .loyalty-modal__title { margin-bottom: 20px; }
+
 .staff-panel { display: flex; flex-direction: column; gap: 14px; }
 .staff-panel[hidden] { display: none; }
 .staff-search {
@@ -3635,70 +3638,159 @@ body.modal-open { overflow: hidden; }
   font-family: var(--font-sans);
   font-size: 0.9375rem;
   padding: 12px 14px;
-  background: var(--cream-deep);
-  border: 1px solid var(--cream-darker);
+  background: #fff;
+  border: 1.5px solid var(--cream-darker);
   color: var(--ink);
-  border-radius: 3px;
+  border-radius: 10px;
+  box-sizing: border-box;
 }
 .staff-search input:focus { outline: none; border-color: var(--loyalty-borravino); }
-.staff-search .loyalty-form__submit { width: auto; margin-top: 0; padding: 12px 18px; }
+.staff-search .loyalty-form__submit { width: auto; margin-top: 0; padding: 12px 18px; border-radius: 10px; }
 
-.staff-results { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.staff-results { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.staff-results__empty {
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  color: var(--ink-light);
+  font-style: italic;
+  text-align: center;
+  padding: 12px 0;
+}
 .staff-results__item {
   width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
   text-align: left;
-  background: var(--cream-deep);
+  background: #fff;
   border: 1px solid var(--cream-darker);
-  border-radius: 4px;
+  border-radius: 12px;
   padding: 10px 14px;
   cursor: pointer;
   font-family: var(--font-sans);
   transition: border-color 150ms ease;
+  box-sizing: border-box;
 }
-.staff-results__item:hover { border-color: var(--loyalty-borravino); }
-.staff-results__item strong { display: block; font-size: 0.9375rem; color: var(--ink); }
-.staff-results__item span { font-size: 0.75rem; color: var(--ink-light); }
+.staff-results__item:hover { border-color: var(--loyalty-copper); }
+.staff-results__avatar {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: rgba(139, 42, 74, 0.08);
+  color: var(--loyalty-borravino);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.75rem;
+}
+.staff-results__text { display: flex; flex-direction: column; min-width: 0; }
+.staff-results__item strong { display: block; font-size: 0.875rem; color: var(--ink); }
+.staff-results__item span span { font-size: 0.75rem; color: var(--ink-light); }
 
 .staff-detail__back {
   text-align: left;
-  margin: 0 0 4px;
+  margin: 0 0 12px;
   padding: 0;
+  font-size: 0.8125rem;
 }
+.staff-detail__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.staff-detail__avatar {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--loyalty-borravino);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.9375rem;
+}
+.staff-detail__header-text { min-width: 0; }
 .staff-detail__name {
   font-family: var(--font-display);
-  font-size: 1.375rem;
+  font-size: 1.125rem;
   font-weight: 700;
-  color: var(--loyalty-borravino);
+  color: var(--ink);
 }
 .staff-detail__meta {
   font-family: var(--font-sans);
   font-size: 0.8125rem;
   color: var(--ink-light);
+  margin: 2px 0 0;
+}
+.staff-detail__card {
+  background: #fff;
+  border: 1px solid var(--cream-darker);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 12px 28px rgba(139, 42, 74, 0.1);
   margin-bottom: 4px;
 }
-.staff-detail__stats {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  background: var(--loyalty-carbon);
-  border-radius: 6px;
-  padding: 16px 10px;
+.staff-detail__balance {
+  text-align: center;
+  padding: 18px 20px 14px;
+  background: rgba(139, 42, 74, 0.06);
 }
-.staff-detail__stat { text-align: center; }
-.staff-detail__stat span {
+.staff-detail__balance-label {
+  display: block;
+  font-family: var(--font-accent);
+  font-size: 0.6875rem;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-mid);
+  margin-bottom: 6px;
+}
+.staff-detail__balance strong {
+  font-family: var(--font-display);
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: var(--loyalty-borravino);
+}
+.staff-detail__chips {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1px;
+  background: var(--cream-darker);
+}
+.staff-detail__chip {
+  background: #fff;
+  text-align: center;
+  padding: 12px 10px;
+}
+.staff-detail__chip span {
   display: block;
   font-family: var(--font-accent);
   font-size: 0.625rem;
-  letter-spacing: 0.1em;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(255,255,255,0.5);
+  color: var(--ink-light);
   margin-bottom: 4px;
 }
-.staff-detail__stat strong {
-  font-family: var(--font-display);
-  font-size: 1.25rem;
-  color: #fff;
+.staff-detail__chip strong {
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--ink);
 }
+.staff-logout-btn {
+  display: block;
+  margin: 18px auto 0;
+  color: #a5395c;
+}
+
 /* Catálogo de canjes — cliente y staff */
 
 .loyalty-rewards__label,
@@ -3769,17 +3861,16 @@ body.modal-open { overflow: hidden; }
   justify-content: space-between;
   align-items: center;
   gap: 10px;
-  padding: 12px 14px;
-  background: var(--cream-deep);
+  padding: 12px 16px;
+  background: #fff;
   border: 1px solid var(--cream-darker);
-  border-radius: 4px;
+  border-radius: 12px;
   cursor: pointer;
   text-align: left;
   transition: border-color 150ms ease, background 150ms ease;
 }
 .staff-canje__btn:hover:not(:disabled) {
-  border-color: var(--loyalty-borravino);
-  background: #fff;
+  border-color: var(--loyalty-copper);
 }
 .staff-canje__btn:disabled {
   cursor: not-allowed;
@@ -3787,7 +3878,7 @@ body.modal-open { overflow: hidden; }
 }
 .staff-canje__btn.is-selected {
   border-color: var(--loyalty-borravino);
-  background: #fff;
+  background: rgba(139, 42, 74, 0.06);
   box-shadow: inset 0 0 0 1px var(--loyalty-borravino);
 }
 .staff-canje__confirm {

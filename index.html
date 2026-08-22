@@ -50,7 +50,7 @@
     var bataterosClient = window.supabase.createClient(BATATEROS_SUPABASE_URL, BATATEROS_SUPABASE_ANON_KEY);
   </script>
 
-  <link rel="stylesheet" href="css/styles-v25.css?v=25zc">
+  <link rel="stylesheet" href="css/styles-v25.css?v=25zd">
 
   <script type="application/ld+json">
   {
@@ -702,6 +702,9 @@
       </div>
 
       <div class="loyalty-view loyalty-view--staff" data-loyalty-view="staff" hidden>
+        <div class="club-badge club-badge--logo">
+          <img src="img/batateros-club-logo.png?v=2" alt="Batateros Club">
+        </div>
         <h3 class="loyalty-modal__title">Panel de staff</h3>
 
         <div class="staff-panel" id="staff-search-panel">
@@ -715,24 +718,34 @@
 
         <div class="staff-panel" id="staff-detail-panel" hidden>
           <button type="button" class="loyalty-modal__switch staff-detail__back" id="staff-detail-back">← Volver a la búsqueda</button>
-          <h4 class="staff-detail__name" id="staff-detail-name">—</h4>
-          <p class="staff-detail__meta" id="staff-detail-meta">—</p>
-          <div class="staff-detail__stats">
-            <div class="staff-detail__stat">
-              <span>Puntos hacia el próximo premio</span>
-              <strong id="staff-detail-saldo">0</strong>
-            </div>
-            <div class="staff-detail__stat">
-              <span>Nivel</span>
-              <strong id="staff-detail-nivel">—</strong>
-            </div>
-            <div class="staff-detail__stat">
-              <span>Descuento vigente</span>
-              <strong id="staff-detail-descuento">—</strong>
+
+          <div class="staff-detail__header">
+            <div class="staff-detail__avatar" id="staff-detail-avatar">—</div>
+            <div class="staff-detail__header-text">
+              <h4 class="staff-detail__name" id="staff-detail-name">—</h4>
+              <p class="staff-detail__meta" id="staff-detail-meta">—</p>
             </div>
           </div>
+
+          <div class="staff-detail__card">
+            <div class="staff-detail__balance">
+              <span class="staff-detail__balance-label">Puntos hacia el próximo premio</span>
+              <strong id="staff-detail-saldo">0</strong>
+            </div>
+            <div class="staff-detail__chips">
+              <div class="staff-detail__chip">
+                <span>Nivel</span>
+                <strong id="staff-detail-nivel">—</strong>
+              </div>
+              <div class="staff-detail__chip">
+                <span>Descuento vigente</span>
+                <strong id="staff-detail-descuento">—</strong>
+              </div>
+            </div>
+          </div>
+
           <div class="staff-canje">
-            <span class="loyalty-rewards__label">Próximo premio</span>
+            <span class="club-section-label">Próximo premio</span>
             <ul class="staff-canje__list" id="staff-canje-options"></ul>
             <div class="staff-canje__confirm" id="staff-canje-confirm" hidden>
               <p class="staff-canje__confirm-text" id="staff-canje-confirm-text"></p>
@@ -746,7 +759,7 @@
           </div>
         </div>
 
-        <button type="button" class="loyalty-modal__switch" id="staff-logout">Cerrar sesión</button>
+        <button type="button" class="loyalty-modal__switch staff-logout-btn" id="staff-logout">Cerrar sesión</button>
       </div>
 
     </div>
@@ -844,6 +857,6 @@
     <span class="mobile-cta-bar__arrow" aria-hidden="true">→</span>
   </a>
 
-  <script src="js/app-v25.js?v=26f"></script>
+  <script src="js/app-v25.js?v=26g"></script>
 </body>
 </html>
