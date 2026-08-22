@@ -1311,6 +1311,13 @@
     'Super Batatero',
     'Prestige Batata Friend'
   ];
+  var LOYALTY_TIER_IMAGES = [
+    'img/menu/cortado.jpg',
+    'img/menu/latte-y-cookie-pistacho-o-frambuesa.jpg',
+    'img/menu/flat-white.jpg',
+    'img/productos/toston-de-perso.jpg',
+    'img/menu/latte.jpg'
+  ];
   var LOYALTY_VENCIMIENTO_DIAS = 30;
   var LOYALTY_PENDING_KEY = 'batata_loyalty_pending';
   var CLIENTE_COLUMNS = 'id, nombre, apellido, numero_socio, nivel_premiado, created_at, email, telefono, newsletter';
@@ -1522,33 +1529,74 @@
       return (a + b).toUpperCase() || '—';
     }
 
+    function openPremioModal(nivel, premioNombre) {
+      var premioModal = document.getElementById('club-premio-modal');
+      if (!premioModal) return;
+      document.getElementById('club-premio-modal-img').src = LOYALTY_TIER_IMAGES[nivel - 1] || '';
+      document.getElementById('club-premio-modal-title').textContent = LOYALTY_TIER_NAMES[nivel - 1] || '';
+      document.getElementById('club-premio-modal-meta').textContent = LOYALTY_TIERS[nivel - 1] + ' puntos';
+      document.getElementById('club-premio-modal-desc').textContent = premioNombre || 'Todavía no cargamos la descripción de este premio.';
+      premioModal.hidden = false;
+      document.body.classList.add('modal-open');
+      requestAnimationFrame(function () { premioModal.classList.add('is-visible'); });
+    }
+
+    function closePremioModal() {
+      var premioModal = document.getElementById('club-premio-modal');
+      if (!premioModal) return;
+      premioModal.classList.remove('is-visible');
+      setTimeout(function () {
+        premioModal.hidden = true;
+        document.body.classList.remove('modal-open');
+      }, 250);
+    }
+
     function renderPremiosTab(cliente) {
       var listEl = document.getElementById('club-tier-list');
-      var html = '';
-      for (var i = 0; i < LOYALTY_TIERS.length; i++) {
-        var nivel = i + 1;
-        var estado = nivel <= cliente.nivel_premiado ? 'done' : (nivel === cliente.nivel_premiado + 1 ? 'current' : 'locked');
-        var badgeContent = estado === 'done'
-          ? '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>'
-          : nivel;
-        var badgeStyle = estado === 'done'
-          ? 'background:var(--loyalty-borravino);color:#fff;'
-          : estado === 'current'
-            ? 'background:#fff;border:1.5px solid var(--loyalty-copper);color:var(--loyalty-copper);'
-            : 'background:var(--cream-darker);color:var(--ink-mid);';
-        var tagHtml = estado === 'done'
-          ? '<span class="club-tier-tag" style="color:var(--loyalty-borravino);">Logrado</span>'
-          : estado === 'current'
-            ? '<span class="club-tier-tag" style="color:var(--loyalty-copper);">En camino</span>'
-            : '';
-        html += '<div class="club-tier-row is-' + estado + '">' +
-          '<div class="club-tier-badge" style="' + badgeStyle + '">' + badgeContent + '</div>' +
-          '<div class="club-tier-info"><div class="club-tier-name">' + escapeHtml(LOYALTY_TIER_NAMES[i]) + '</div>' +
-          '<div class="club-tier-meta">' + LOYALTY_TIERS[i] + ' puntos</div></div>' +
-          tagHtml +
-          '</div>';
-      }
-      listEl.innerHTML = html;
+
+      bataterosClient
+        .from('beneficios')
+        .select('nivel, nombre')
+        .order('nivel', { ascending: true })
+        .then(function (res) {
+          var beneficiosPorNivel = {};
+          (res.data || []).forEach(function (b) { beneficiosPorNivel[b.nivel] = b.nombre; });
+
+          var html = '';
+          for (var i = 0; i < LOYALTY_TIERS.length; i++) {
+            var nivel = i + 1;
+            var estado = nivel <= cliente.nivel_premiado ? 'done' : (nivel === cliente.nivel_premiado + 1 ? 'current' : 'locked');
+            var badgeContent = estado === 'done'
+              ? '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>'
+              : nivel;
+            var badgeStyle = estado === 'done'
+              ? 'background:var(--loyalty-borravino);color:#fff;'
+              : estado === 'current'
+                ? 'background:#fff;border:1.5px solid var(--loyalty-copper);color:var(--loyalty-copper);'
+                : 'background:var(--cream-darker);color:var(--ink-mid);';
+            var tagHtml = estado === 'done'
+              ? '<span class="club-tier-tag" style="color:var(--loyalty-borravino);">Logrado</span>'
+              : estado === 'current'
+                ? '<span class="club-tier-tag" style="color:var(--loyalty-copper);">En camino</span>'
+                : '';
+            var premioNombre = beneficiosPorNivel[nivel] || '';
+            html += '<button type="button" class="club-tier-row is-' + estado + '" data-tier-nivel="' + nivel + '" data-tier-premio="' + escapeHtml(premioNombre) + '">' +
+              '<div class="club-tier-badge" style="' + badgeStyle + '">' + badgeContent + '</div>' +
+              '<div class="club-tier-info"><div class="club-tier-name">' + escapeHtml(LOYALTY_TIER_NAMES[i]) + '</div>' +
+              '<div class="club-tier-meta">' + LOYALTY_TIERS[i] + ' puntos</div>' +
+              (premioNombre ? '<div class="club-tier-premio">' + escapeHtml(premioNombre) + '</div>' : '') +
+              '</div>' +
+              tagHtml +
+              '</button>';
+          }
+          listEl.innerHTML = html;
+
+          listEl.querySelectorAll('[data-tier-nivel]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+              openPremioModal(parseInt(btn.getAttribute('data-tier-nivel'), 10), btn.getAttribute('data-tier-premio'));
+            });
+          });
+        });
 
       bataterosClient
         .from('descuentos_accesorios')
@@ -2024,6 +2072,17 @@
       });
       document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape' && !activityModal.hidden) closeActividadModal();
+      });
+    }
+
+    var premioModal = document.getElementById('club-premio-modal');
+    if (premioModal) {
+      var premioModalClose = premioModal.querySelector('.club-activity-modal__close');
+      premioModal.addEventListener('click', function (e) {
+        if (e.target === premioModal || e.target === premioModalClose) closePremioModal();
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && !premioModal.hidden) closePremioModal();
       });
     }
 
