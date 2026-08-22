@@ -299,6 +299,11 @@ section[id] {
   border-color: #6e2039;
   transform: translateY(-1px);
 }
+.btn--loyalty__logo {
+  height: 18px;
+  width: auto;
+  display: block;
+}
 
 /* =========================================================
    SCROLL REVEAL
