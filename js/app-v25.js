@@ -1313,7 +1313,7 @@
   ];
   var LOYALTY_VENCIMIENTO_DIAS = 30;
   var LOYALTY_PENDING_KEY = 'batata_loyalty_pending';
-  var CLIENTE_COLUMNS = 'id, nombre, apellido, numero_socio, nivel_premiado, created_at';
+  var CLIENTE_COLUMNS = 'id, nombre, apellido, numero_socio, nivel_premiado, created_at, email, telefono, newsletter';
 
   // Mismo Apps Script que ya usa el sitio para el voucher del latte y el
   // newsletter de mesa — le sumamos un tipo nuevo ('batateros_bienvenida')
@@ -1510,6 +1510,81 @@
         .then(function (res) { callback(res.data || null); });
     }
 
+    function formatMesAno(iso) {
+      var d = new Date(iso);
+      return VOUCHER_MONTHS_ES[d.getMonth()] + ' de ' + d.getFullYear();
+    }
+
+    function iniciales(nombre, apellido) {
+      var a = (nombre || '').trim().charAt(0);
+      var b = (apellido || '').trim().charAt(0);
+      return (a + b).toUpperCase() || '—';
+    }
+
+    function renderPremiosTab(cliente) {
+      var listEl = document.getElementById('club-tier-list');
+      var html = '';
+      for (var i = 0; i < LOYALTY_TIERS.length; i++) {
+        var nivel = i + 1;
+        var estado = nivel <= cliente.nivel_premiado ? 'done' : (nivel === cliente.nivel_premiado + 1 ? 'current' : 'locked');
+        var badgeContent = estado === 'done'
+          ? '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>'
+          : nivel;
+        var badgeStyle = estado === 'done'
+          ? 'background:var(--loyalty-borravino);color:#fff;'
+          : estado === 'current'
+            ? 'background:#fff;border:1.5px solid var(--loyalty-copper);color:var(--loyalty-copper);'
+            : 'background:var(--cream-darker);color:var(--ink-mid);';
+        var tagHtml = estado === 'done'
+          ? '<span class="club-tier-tag" style="color:var(--loyalty-borravino);">Logrado</span>'
+          : estado === 'current'
+            ? '<span class="club-tier-tag" style="color:var(--loyalty-copper);">En camino</span>'
+            : '';
+        html += '<div class="club-tier-row is-' + estado + '">' +
+          '<div class="club-tier-badge" style="' + badgeStyle + '">' + badgeContent + '</div>' +
+          '<div class="club-tier-info"><div class="club-tier-name">' + escapeHtml(LOYALTY_TIER_NAMES[i]) + '</div>' +
+          '<div class="club-tier-meta">' + LOYALTY_TIERS[i] + ' puntos</div></div>' +
+          tagHtml +
+          '</div>';
+      }
+      listEl.innerHTML = html;
+
+      bataterosClient
+        .from('descuentos_accesorios')
+        .select('nivel, descripcion, porcentaje')
+        .eq('activo', true)
+        .order('nivel', { ascending: true })
+        .then(function (res) {
+          var rows = res.data || [];
+          var gridEl = document.getElementById('club-disc-grid');
+          gridEl.innerHTML = rows.map(function (r) {
+            return '<div class="club-disc-cell"><span class="club-disc-pct">' + r.porcentaje + '%</span>' +
+              '<span class="club-disc-lvl">Nivel ' + r.nivel + '</span>' +
+              '<div class="club-disc-desc">' + escapeHtml(r.descripcion) + '</div></div>';
+          }).join('');
+          gridEl.querySelectorAll('.club-disc-cell').forEach(function (cell) {
+            cell.addEventListener('click', function () { cell.classList.toggle('is-open'); });
+          });
+        });
+    }
+
+    function renderPerfilTab(cliente) {
+      document.getElementById('club-avatar-initials').textContent = iniciales(cliente.nombre, cliente.apellido);
+      document.getElementById('club-profile-name').textContent =
+        cliente.nombre + (cliente.apellido ? ' ' + cliente.apellido : '');
+      document.getElementById('club-profile-since').textContent = 'Socio desde ' + formatMesAno(cliente.created_at);
+      document.getElementById('club-profile-email').textContent = cliente.email || '—';
+      document.getElementById('club-profile-telefono').textContent = cliente.telefono || '—';
+      document.getElementById('club-profile-socio').textContent = cliente.numero_socio || '—';
+
+      var toggle = document.getElementById('club-newsletter-toggle');
+      toggle.classList.toggle('is-off', !cliente.newsletter);
+      toggle.onclick = function () {
+        var estaApagado = toggle.classList.toggle('is-off');
+        bataterosClient.from('clientes_loyalty').update({ newsletter: !estaApagado }).eq('id', cliente.id).then(function () {});
+      };
+    }
+
     function renderCard(cliente) {
       clearPending();
       document.getElementById('loyalty-card-nombre').textContent =
@@ -1518,6 +1593,8 @@
         cliente.numero_socio ? 'Socio N.° ' + cliente.numero_socio : '';
       document.getElementById('loyalty-card-tier').textContent = loyaltyTierName(cliente.nivel_premiado);
       renderLoyaltyTrack(cliente.nivel_premiado);
+      renderPremiosTab(cliente);
+      renderPerfilTab(cliente);
 
       loadProgress(cliente, function (progreso) {
         document.getElementById('loyalty-card-saldo').textContent = progreso.puntos;
@@ -1549,6 +1626,9 @@
           });
         }
       });
+
+      modal.querySelectorAll('[data-club-tab]').forEach(function (b) { b.classList.toggle('is-active', b.getAttribute('data-club-tab') === 'inicio'); });
+      modal.querySelectorAll('.club-panel').forEach(function (p) { p.classList.toggle('is-active', p.id === 'club-panel-inicio'); });
 
       showView('card');
     }
@@ -1610,7 +1690,7 @@
 
       bataterosClient
         .from('clientes_loyalty')
-        .select(CLIENTE_COLUMNS + ', telefono')
+        .select(CLIENTE_COLUMNS)
         .or(orParts.join(','))
         .limit(15)
         .then(function (res) {
@@ -1809,6 +1889,14 @@
       });
     });
 
+    modal.querySelectorAll('[data-club-tab]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var name = btn.getAttribute('data-club-tab');
+        modal.querySelectorAll('[data-club-tab]').forEach(function (b) { b.classList.toggle('is-active', b === btn); });
+        modal.querySelectorAll('.club-panel').forEach(function (p) { p.classList.toggle('is-active', p.id === 'club-panel-' + name); });
+      });
+    });
+
     var registerForm = document.getElementById('loyalty-register-form');
     if (registerForm) {
       registerForm.addEventListener('submit', function (e) {
@@ -1830,7 +1918,7 @@
 
         var pendingData = { nombre: nombre, apellido: apellido, fecha_nacimiento: fechaNacimiento, telefono: telefono, email: email, newsletter: newsletter };
 
-        bataterosClient.auth.signUp({ email: email, password: password }).then(function (res) {
+        bataterosClient.auth.signUp({ email: email, password: password, options: { data: { nombre: nombre } } }).then(function (res) {
           submitBtn.disabled = false;
           submitBtn.textContent = originalLabel;
 

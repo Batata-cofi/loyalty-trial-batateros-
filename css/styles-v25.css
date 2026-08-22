@@ -3833,3 +3833,246 @@ body.modal-open { overflow: hidden; }
   color: #3f7a4d;
   text-align: center;
 }
+
+/* =========================================================
+   BATATEROS — rediseño claro del portal de socios (2026-08-21)
+   Modal chrome más redondeado + inputs blancos + badge de marca
+   + tabs Inicio/Premios/Mi perfil dentro de la vista "card".
+   ========================================================= */
+
+.loyalty-modal__content {
+  border-radius: 20px;
+}
+.loyalty-form__field input {
+  background: #fff;
+  border: 1.5px solid var(--cream-darker);
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+.loyalty-form__field input:focus {
+  border-color: var(--loyalty-borravino);
+}
+.loyalty-form__submit {
+  border-radius: 10px;
+}
+
+.club-badge {
+  width: 54px;
+  height: 54px;
+  border-radius: 16px;
+  background: rgba(139, 42, 74, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+}
+
+.club-tabs {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 22px;
+}
+.club-tabs-track {
+  display: inline-flex;
+  background: var(--cream-deep);
+  border-radius: 999px;
+  padding: 4px;
+  gap: 4px;
+}
+.club-tab {
+  border: none;
+  background: none;
+  padding: 8px 18px;
+  border-radius: 999px;
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 0.8125rem;
+  color: var(--ink-mid);
+  cursor: pointer;
+}
+.club-tab.is-active {
+  background: #fff;
+  color: var(--loyalty-borravino);
+  box-shadow: 0 3px 10px rgba(139, 42, 74, 0.14);
+}
+
+.club-panel { display: none; }
+.club-panel.is-active { display: block; }
+
+.club-section-label {
+  display: block;
+  font-family: var(--font-accent);
+  font-weight: 900;
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-mid);
+  margin: 26px 0 10px;
+}
+
+/* Premios: lista de niveles */
+.club-tier-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 16px 12px 10px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid var(--cream-darker);
+}
+.club-tier-row + .club-tier-row { margin-top: 8px; }
+.club-tier-row.is-done { border-color: var(--loyalty-borravino); background: rgba(139, 42, 74, 0.06); }
+.club-tier-row.is-current { border: 1.5px solid var(--loyalty-copper); }
+.club-tier-row.is-locked { opacity: 0.55; }
+.club-tier-badge {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 0.8125rem;
+  color: #fff;
+}
+.club-tier-info { flex-grow: 1; min-width: 0; }
+.club-tier-name { font-family: var(--font-sans); font-weight: 700; font-size: 0.875rem; color: var(--ink); }
+.club-tier-meta { font-family: var(--font-sans); font-size: 0.75rem; color: var(--ink-mid); margin-top: 2px; }
+.club-tier-tag {
+  font-family: var(--font-accent);
+  font-weight: 700;
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+/* Premios: descuentos por nivel */
+.club-disc-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+.club-disc-cell {
+  padding: 12px 8px;
+  background: #fff;
+  border: 1px solid var(--cream-darker);
+  border-radius: 10px;
+  text-align: center;
+  cursor: pointer;
+}
+.club-disc-cell.is-open { background: rgba(139, 42, 74, 0.06); border-color: var(--loyalty-borravino); }
+.club-disc-pct { display: block; font-family: var(--font-sans); font-weight: 800; font-size: 1.0625rem; color: var(--loyalty-borravino); }
+.club-disc-lvl { display: block; font-family: var(--font-sans); font-size: 0.6875rem; color: var(--ink-mid); margin-top: 2px; }
+.club-disc-desc {
+  display: none;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--cream-darker);
+  font-family: var(--font-sans);
+  font-size: 0.6875rem;
+  line-height: 1.4;
+  color: var(--ink-mid);
+  text-align: left;
+}
+.club-disc-cell.is-open .club-disc-desc { display: block; }
+
+/* Mi perfil */
+.club-profile-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  background: #fff;
+  border: 1px solid var(--cream-darker);
+  border-radius: 14px;
+}
+.club-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--loyalty-borravino);
+  color: #fff;
+  font-family: var(--font-sans);
+  font-weight: 800;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.club-profile-name { font-family: var(--font-sans); font-weight: 700; font-size: 1rem; color: var(--ink); }
+.club-profile-since { font-family: var(--font-sans); font-size: 0.75rem; color: var(--ink-mid); margin-top: 2px; }
+
+.club-info-card {
+  background: #fff;
+  border: 1px solid var(--cream-darker);
+  border-radius: 14px;
+  overflow: hidden;
+  margin-top: 14px;
+}
+.club-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+}
+.club-info-row + .club-info-row { border-top: 1px solid var(--cream-darker); }
+.club-info-label { font-family: var(--font-accent); font-size: 0.6875rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-light); flex-shrink: 0; }
+.club-info-value { font-family: var(--font-sans); font-weight: 600; font-size: 0.8125rem; color: var(--ink); text-align: right; min-width: 0; overflow-wrap: anywhere; }
+
+.club-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 16px;
+}
+.club-toggle-title { font-family: var(--font-sans); font-weight: 600; font-size: 0.8125rem; color: var(--ink); }
+.club-toggle-sub { font-family: var(--font-sans); font-size: 0.6875rem; color: var(--ink-mid); margin-top: 2px; }
+.club-switch {
+  width: 40px;
+  height: 23px;
+  border-radius: 999px;
+  background: var(--loyalty-borravino);
+  position: relative;
+  flex-shrink: 0;
+  cursor: pointer;
+  border: none;
+}
+.club-switch::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 20px;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: #fff;
+  transition: left 150ms ease;
+}
+.club-switch.is-off { background: var(--cream-darker); }
+.club-switch.is-off::after { left: 3px; }
+
+.club-account-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 12px 16px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 0.8125rem;
+  color: var(--ink);
+  text-align: left;
+  text-decoration: none;
+  box-sizing: border-box;
+}
+.club-account-link + .club-account-link { border-top: 1px solid var(--cream-darker); }
+.club-account-link.is-danger { color: #a5395c; }

@@ -50,7 +50,7 @@
     var bataterosClient = window.supabase.createClient(BATATEROS_SUPABASE_URL, BATATEROS_SUPABASE_ANON_KEY);
   </script>
 
-  <link rel="stylesheet" href="css/styles-v25.css?v=25q">
+  <link rel="stylesheet" href="css/styles-v25.css?v=25r">
 
   <script type="application/ld+json">
   {
@@ -518,6 +518,9 @@
     <div class="loyalty-modal__content">
 
       <div class="loyalty-view" data-loyalty-view="register">
+        <div class="club-badge">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#8B2A4A" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13a3 3 0 0 1 0 6h-1"/><path d="M4 8v8a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3v-2"/></svg>
+        </div>
         <h3 id="loyalty-modal-title" class="loyalty-modal__title">Creá tu tarjeta Batateros</h3>
         <p class="loyalty-modal__subtitle">Nombre, mail y teléfono — así te reconocemos en cada compra.</p>
         <form class="loyalty-form" id="loyalty-register-form">
@@ -560,6 +563,9 @@
       </div>
 
       <div class="loyalty-view" data-loyalty-view="login" hidden>
+        <div class="club-badge">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#8B2A4A" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="13" rx="1.5"/><path d="M3 12h18"/><path d="M12 8v13"/><path d="M12 8c-2 0-3.2-1.3-3.2-3S9.6 2.2 11 2.6C12.5 3 12 8 12 8Z"/><path d="M12 8c2 0 3.2-1.3 3.2-3S14.4 2.2 13 2.6C11.5 3 12 8 12 8Z"/></svg>
+        </div>
         <h3 class="loyalty-modal__title">Iniciá sesión</h3>
         <p class="loyalty-modal__subtitle">Entrá para ver tu tarjeta y tu saldo de puntos.</p>
         <form class="loyalty-form" id="loyalty-login-form">
@@ -612,26 +618,72 @@
       </div>
 
       <div class="loyalty-view" data-loyalty-view="card" hidden>
-        <div class="loyalty-card">
-          <div class="loyalty-card__top">
-            <span class="loyalty-card__brand">Batateros</span>
-            <span class="loyalty-card__name" id="loyalty-card-nombre">—</span>
+        <div class="club-tabs">
+          <div class="club-tabs-track">
+            <button type="button" class="club-tab is-active" data-club-tab="inicio">Inicio</button>
+            <button type="button" class="club-tab" data-club-tab="premios">Premios</button>
+            <button type="button" class="club-tab" data-club-tab="perfil">Mi perfil</button>
           </div>
-          <span class="loyalty-card__socio" id="loyalty-card-socio">—</span>
-          <span class="loyalty-card__tier" id="loyalty-card-tier">—</span>
-          <div class="loyalty-card__balance">
-            <span class="loyalty-card__balance-label">Puntos hacia tu próximo premio</span>
-            <strong class="loyalty-card__balance-value" id="loyalty-card-saldo">0</strong>
+        </div>
+
+        <div class="club-panel is-active" id="club-panel-inicio">
+          <div class="loyalty-card">
+            <div class="loyalty-card__top">
+              <span class="loyalty-card__brand">Batateros</span>
+              <span class="loyalty-card__name" id="loyalty-card-nombre">—</span>
+            </div>
+            <span class="loyalty-card__socio" id="loyalty-card-socio">—</span>
+            <span class="loyalty-card__tier" id="loyalty-card-tier">—</span>
+            <div class="loyalty-card__balance">
+              <span class="loyalty-card__balance-label">Puntos hacia tu próximo premio</span>
+              <strong class="loyalty-card__balance-value" id="loyalty-card-saldo">0</strong>
+            </div>
+            <div class="loyalty-card__track" id="loyalty-card-track" aria-label="Niveles alcanzados"></div>
+            <p class="loyalty-card__next" id="loyalty-card-next"></p>
+            <p class="loyalty-card__vence" id="loyalty-card-vence"></p>
           </div>
-          <div class="loyalty-card__track" id="loyalty-card-track" aria-label="Niveles alcanzados"></div>
-          <p class="loyalty-card__next" id="loyalty-card-next"></p>
-          <p class="loyalty-card__vence" id="loyalty-card-vence"></p>
+          <div class="loyalty-rewards" id="loyalty-descuento" hidden>
+            <span class="loyalty-rewards__label">Beneficio vigente</span>
+            <p class="loyalty-descuento__text" id="loyalty-descuento-text"></p>
+          </div>
         </div>
-        <div class="loyalty-rewards" id="loyalty-descuento" hidden>
-          <span class="loyalty-rewards__label">Beneficio vigente</span>
-          <p class="loyalty-descuento__text" id="loyalty-descuento-text"></p>
+
+        <div class="club-panel" id="club-panel-premios">
+          <div id="club-tier-list"></div>
+          <span class="club-section-label">Descuentos por nivel</span>
+          <div class="club-disc-grid" id="club-disc-grid"></div>
         </div>
-        <button type="button" class="loyalty-modal__switch" id="loyalty-logout">Cerrar sesión</button>
+
+        <div class="club-panel" id="club-panel-perfil">
+          <div class="club-profile-card">
+            <div class="club-avatar" id="club-avatar-initials">—</div>
+            <div>
+              <div class="club-profile-name" id="club-profile-name">—</div>
+              <div class="club-profile-since" id="club-profile-since">—</div>
+            </div>
+          </div>
+          <div class="club-info-card">
+            <div class="club-info-row"><span class="club-info-label">Email</span><span class="club-info-value" id="club-profile-email">—</span></div>
+            <div class="club-info-row"><span class="club-info-label">Teléfono</span><span class="club-info-value" id="club-profile-telefono">—</span></div>
+            <div class="club-info-row"><span class="club-info-label">N.° de socio</span><span class="club-info-value" id="club-profile-socio">—</span></div>
+          </div>
+          <span class="club-section-label">Preferencias</span>
+          <div class="club-info-card">
+            <div class="club-toggle-row">
+              <div>
+                <div class="club-toggle-title">Novedades por mail</div>
+                <div class="club-toggle-sub">Promos y novedades de Batata Cofi</div>
+              </div>
+              <button type="button" class="club-switch" id="club-newsletter-toggle"></button>
+            </div>
+          </div>
+          <span class="club-section-label">Cuenta</span>
+          <div class="club-info-card">
+            <button type="button" class="club-account-link" data-loyalty-switch="forgot">Cambiar contraseña</button>
+            <a class="club-account-link" href="privacidad.html" target="_blank" rel="noopener">Política de privacidad</a>
+            <button type="button" class="club-account-link is-danger" id="loyalty-logout">Cerrar sesión</button>
+          </div>
+        </div>
       </div>
 
       <div class="loyalty-view loyalty-view--staff" data-loyalty-view="staff" hidden>
@@ -757,6 +809,6 @@
     <span class="mobile-cta-bar__arrow" aria-hidden="true">→</span>
   </a>
 
-  <script src="js/app-v25.js?v=26a"></script>
+  <script src="js/app-v25.js?v=26b"></script>
 </body>
 </html>
