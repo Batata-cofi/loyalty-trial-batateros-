@@ -4128,12 +4128,13 @@ body.modal-open { overflow: hidden; }
   height: 108px;
   flex-shrink: 0;
   border-radius: 16px;
-  background: linear-gradient(150deg, var(--loyalty-borravino), #6e2039);
+  background: var(--cream-deep);
+  border: 1px solid var(--cream-darker);
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  padding: 12px;
+  padding: 10px;
   box-sizing: border-box;
 }
 .club-hero-img img {
