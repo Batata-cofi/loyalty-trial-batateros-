@@ -288,6 +288,17 @@ section[id] {
   border-color: var(--burgundy-deep);
   transform: translateY(-1px);
 }
+.btn--loyalty {
+  background: var(--loyalty-borravino);
+  color: #fff;
+  border: 2px solid var(--loyalty-borravino);
+  border-radius: 10px;
+}
+.btn--loyalty:hover {
+  background: #6e2039;
+  border-color: #6e2039;
+  transform: translateY(-1px);
+}
 
 /* =========================================================
    SCROLL REVEAL
