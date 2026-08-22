@@ -300,9 +300,12 @@ section[id] {
   transform: translateY(-1px);
 }
 .btn--loyalty__logo {
-  height: 18px;
+  height: 26px;
   width: auto;
   display: block;
+}
+.hero__ctas .btn {
+  min-width: 160px;
 }
 
 /* =========================================================
