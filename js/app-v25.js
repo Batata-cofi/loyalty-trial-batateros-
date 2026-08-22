@@ -1389,6 +1389,7 @@
       staff:    modal.querySelector('[data-loyalty-view="staff"]')
     };
     var lastFocused = null;
+    var currentClienteActividad = null;
     var staffCurrentCliente = null;
     var staffCurrentProgreso = 0;
     var staffSelectedBeneficio = null;
@@ -1607,28 +1608,71 @@
       return '$' + Math.round(n || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
     }
 
+    function buildActivityRowHtml(r) {
+      return '<div class="club-activity-row">' +
+        '<div class="club-activity-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--loyalty-borravino)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13a3 3 0 0 1 0 6h-1"/><path d="M4 8v8a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3v-2"/></svg></div>' +
+        '<div class="club-activity-desc"><strong>Compra en Batata Cofi</strong><small>' + formatRelativo(r.fecha_acumulado) + ' · ' + formatMonto(r.monto_compra) + '</small></div>' +
+        '<span class="club-activity-pts">+' + r.puntos_otorgados + ' pts</span>' +
+        '</div>';
+    }
+
     function renderActividadReciente(cliente) {
-      var listEl = document.getElementById('club-activity-list');
+      currentClienteActividad = cliente;
+      var lastBtn = document.getElementById('club-activity-last');
       bataterosClient
         .from('puntos')
         .select('monto_compra, puntos_otorgados, fecha_acumulado')
         .eq('cliente_id', cliente.id)
         .order('fecha_acumulado', { ascending: false })
-        .limit(3)
+        .limit(1)
         .then(function (res) {
           var rows = res.data || [];
           if (!rows.length) {
-            listEl.innerHTML = '<div class="club-activity-empty">Todavía no registrás compras. ¡Tu próxima compra suma acá!</div>';
+            lastBtn.hidden = true;
             return;
           }
-          listEl.innerHTML = rows.map(function (r) {
-            return '<div class="club-activity-row">' +
-              '<div class="club-activity-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--loyalty-borravino)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13a3 3 0 0 1 0 6h-1"/><path d="M4 8v8a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3v-2"/></svg></div>' +
-              '<div class="club-activity-desc"><strong>Compra en Batata Cofi</strong><small>' + formatRelativo(r.fecha_acumulado) + ' · ' + formatMonto(r.monto_compra) + '</small></div>' +
-              '<span class="club-activity-pts">+' + r.puntos_otorgados + ' pts</span>' +
-              '</div>';
-          }).join('');
+          lastBtn.hidden = false;
+          lastBtn.innerHTML =
+            '<div class="club-activity-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--loyalty-borravino)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13a3 3 0 0 1 0 6h-1"/><path d="M4 8v8a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3v-2"/></svg></div>' +
+            '<div class="club-activity-desc"><strong>Compra en Batata Cofi</strong><small>' + formatRelativo(rows[0].fecha_acumulado) + ' · ' + formatMonto(rows[0].monto_compra) + '</small></div>' +
+            '<span class="club-activity-pts">+' + rows[0].puntos_otorgados + ' pts</span>' +
+            '<svg class="club-activity-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>';
         });
+    }
+
+    function openActividadModal() {
+      if (!currentClienteActividad) return;
+      var actModal = document.getElementById('club-activity-modal');
+      var listEl = document.getElementById('club-activity-modal-list');
+      if (!actModal || !listEl) return;
+
+      listEl.innerHTML = '<div class="club-activity-empty">Cargando…</div>';
+      actModal.hidden = false;
+      document.body.classList.add('modal-open');
+      requestAnimationFrame(function () { actModal.classList.add('is-visible'); });
+
+      bataterosClient
+        .from('puntos')
+        .select('monto_compra, puntos_otorgados, fecha_acumulado')
+        .eq('cliente_id', currentClienteActividad.id)
+        .order('fecha_acumulado', { ascending: false })
+        .limit(20)
+        .then(function (res) {
+          var rows = res.data || [];
+          listEl.innerHTML = rows.length
+            ? rows.map(buildActivityRowHtml).join('')
+            : '<div class="club-activity-empty">Todavía no registrás compras. ¡Tu próxima compra suma acá!</div>';
+        });
+    }
+
+    function closeActividadModal() {
+      var actModal = document.getElementById('club-activity-modal');
+      if (!actModal) return;
+      actModal.classList.remove('is-visible');
+      setTimeout(function () {
+        actModal.hidden = true;
+        document.body.classList.remove('modal-open');
+      }, 250);
     }
 
     function renderCard(cliente) {
@@ -1944,6 +1988,20 @@
         modal.querySelectorAll('.club-panel').forEach(function (p) { p.classList.toggle('is-active', p.id === 'club-panel-' + name); });
       });
     });
+
+    var activityLastBtn = document.getElementById('club-activity-last');
+    if (activityLastBtn) activityLastBtn.addEventListener('click', openActividadModal);
+
+    var activityModal = document.getElementById('club-activity-modal');
+    if (activityModal) {
+      var activityModalClose = activityModal.querySelector('.club-activity-modal__close');
+      activityModal.addEventListener('click', function (e) {
+        if (e.target === activityModal || e.target === activityModalClose) closeActividadModal();
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && !activityModal.hidden) closeActividadModal();
+      });
+    }
 
     var registerForm = document.getElementById('loyalty-register-form');
     if (registerForm) {

@@ -50,7 +50,7 @@
     var bataterosClient = window.supabase.createClient(BATATEROS_SUPABASE_URL, BATATEROS_SUPABASE_ANON_KEY);
   </script>
 
-  <link rel="stylesheet" href="css/styles-v25.css?v=25w">
+  <link rel="stylesheet" href="css/styles-v25.css?v=25y">
 
   <script type="application/ld+json">
   {
@@ -659,7 +659,7 @@
           </div>
 
           <span class="club-section-label">Actividad reciente</span>
-          <div class="club-activity-list" id="club-activity-list"></div>
+          <button type="button" class="club-activity-last" id="club-activity-last" hidden></button>
         </div>
 
         <div class="club-panel" id="club-panel-premios">
@@ -751,6 +751,14 @@
     </div>
   </div>
 
+  <div class="club-activity-modal" id="club-activity-modal" hidden role="dialog" aria-modal="true" aria-labelledby="club-activity-modal-title">
+    <button class="club-activity-modal__close" aria-label="Cerrar" type="button">×</button>
+    <div class="club-activity-modal__content">
+      <h3 class="club-activity-modal__title" id="club-activity-modal-title">Actividad reciente</h3>
+      <div class="club-activity-list" id="club-activity-modal-list"></div>
+    </div>
+  </div>
+
   <div class="voucher-modal" id="voucher-modal" hidden role="dialog" aria-modal="true" aria-labelledby="voucher-modal-title">
     <button class="voucher-modal__close" aria-label="Cerrar" type="button">×</button>
     <div class="voucher-modal__content">
@@ -823,6 +831,6 @@
     <span class="mobile-cta-bar__arrow" aria-hidden="true">→</span>
   </a>
 
-  <script src="js/app-v25.js?v=26c"></script>
+  <script src="js/app-v25.js?v=26d"></script>
 </body>
 </html>
