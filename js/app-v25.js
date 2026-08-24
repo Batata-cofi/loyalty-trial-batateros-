@@ -1454,29 +1454,35 @@
     // carga más reciente de ese tramo, el avance se considera reseteado a 0
     // — se calcula al vuelo, no hace falta ningún job para "aplicar" el reset.
     function loadProgress(cliente, callback) {
+      // Balance real: todo lo ganado en la vida del cliente menos todo lo
+      // efectivamente gastado en canjes (canjes.puntos_utilizados, que el
+      // RPC canjear_premio ahora fija al costo exacto del nivel, no al saldo
+      // completo) — así un canje solo consume lo que vale ese nivel y el
+      // sobrante queda disponible para el próximo, en vez de resetearse a 0.
       bataterosClient
-        .from('canjes')
-        .select('fecha')
+        .from('puntos')
+        .select('puntos_otorgados, fecha_acumulado')
         .eq('cliente_id', cliente.id)
-        .order('fecha', { ascending: false })
-        .limit(1)
-        .maybeSingle()
-        .then(function (canjeRes) {
-          var desde = (canjeRes.data && canjeRes.data.fecha) || cliente.created_at;
+        .then(function (puntosRes) {
+          var rows = puntosRes.data || [];
+          var totalGanado = 0;
+          var fechaUltimaCarga = null;
+          rows.forEach(function (r) {
+            totalGanado += r.puntos_otorgados;
+            if (!fechaUltimaCarga || r.fecha_acumulado > fechaUltimaCarga) fechaUltimaCarga = r.fecha_acumulado;
+          });
+
           bataterosClient
-            .from('puntos')
-            .select('puntos_otorgados, fecha_acumulado')
+            .from('canjes')
+            .select('puntos_utilizados')
             .eq('cliente_id', cliente.id)
-            .gt('fecha_acumulado', desde)
-            .then(function (puntosRes) {
-              var rows = puntosRes.data || [];
-              var total = 0;
-              var fechaUltimaCarga = null;
-              rows.forEach(function (r) {
-                total += r.puntos_otorgados;
-                if (!fechaUltimaCarga || r.fecha_acumulado > fechaUltimaCarga) fechaUltimaCarga = r.fecha_acumulado;
-              });
-              var fechaReferencia = fechaUltimaCarga || desde;
+            .then(function (canjesRes) {
+              var totalGastado = (canjesRes.data || []).reduce(function (acc, c) {
+                return acc + (c.puntos_utilizados || 0);
+              }, 0);
+              var balance = Math.max(0, totalGanado - totalGastado);
+
+              var fechaReferencia = fechaUltimaCarga || cliente.created_at;
               var diasInactivo = (Date.now() - new Date(fechaReferencia).getTime()) / 86400000;
               var vencido = diasInactivo > LOYALTY_VENCIMIENTO_DIAS;
               // Nivel vigente: baja un escalón por cada LOYALTY_VENCIMIENTO_DIAS de
@@ -1485,7 +1491,7 @@
               var escalonesPerdidos = Math.floor(diasInactivo / LOYALTY_VENCIMIENTO_DIAS);
               var nivelVigente = Math.max(0, cliente.nivel_premiado - escalonesPerdidos);
               callback({
-                puntos: vencido ? 0 : total,
+                puntos: vencido ? 0 : balance,
                 fechaReferencia: fechaReferencia,
                 vencido: vencido,
                 nivelVigente: nivelVigente
@@ -1920,7 +1926,7 @@
       bataterosClient.rpc('canjear_premio', {
         p_cliente_id: staffCurrentCliente.id,
         p_beneficio_id: beneficio.id,
-        p_puntos_utilizados: staffCurrentProgreso
+        p_puntos_utilizados: beneficio.puntos_requeridos
       }).then(function (res) {
         if (res.error) {
           errEl.textContent = res.error.message;
