@@ -1320,7 +1320,7 @@
   ];
   var LOYALTY_VENCIMIENTO_DIAS = 30;
   var LOYALTY_PENDING_KEY = 'batata_loyalty_pending';
-  var CLIENTE_COLUMNS = 'id, nombre, apellido, numero_socio, nivel_premiado, created_at, email, telefono, newsletter';
+  var CLIENTE_COLUMNS = 'id, nombre, apellido, numero_socio, nivel_premiado, vuelta, nivel_ciclo, created_at, email, telefono, newsletter';
 
   // Mismo Apps Script que ya usa el sitio para el voucher del latte y el
   // newsletter de mesa — le sumamos un tipo nuevo ('batateros_bienvenida')
@@ -1354,6 +1354,14 @@
     return nivel > 0 ? LOYALTY_TIER_NAMES[nivel - 1] : 'Todavía sin nivel';
   }
 
+  // Posición dentro del circuito de premios (1-5) que gobierna qué se puede
+  // canjear/mostrar como progreso. Antes de llegar a nivel 5 es simplemente
+  // nivel_premiado; una vez ahí (permanente, nunca vuelve a bajar), pasa a
+  // ser nivel_ciclo, que da la vuelta infinitamente por los mismos 5 premios.
+  function nivelCicloEfectivo(cliente) {
+    return cliente.nivel_premiado < 5 ? cliente.nivel_premiado : cliente.nivel_ciclo;
+  }
+
   function escapeHtml(str) {
     return String(str == null ? '' : str).replace(/[&<>"']/g, function (c) {
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
@@ -1368,6 +1376,17 @@
 
   function formatFecha(date) {
     return date.getDate() + ' de ' + VOUCHER_MONTHS_ES[date.getMonth()];
+  }
+
+  function renderVueltaBadge(cliente) {
+    var el = document.getElementById('loyalty-card-vuelta');
+    if (!el) return;
+    if (cliente.vuelta >= 2) {
+      el.hidden = false;
+      el.textContent = cliente.vuelta + 'ª vuelta';
+    } else {
+      el.hidden = true;
+    }
   }
 
   function renderLoyaltyTrack(nivelPremiado) {
@@ -1500,12 +1519,13 @@
         });
     }
 
-    function loadProximoBeneficio(nivelPremiado, callback) {
-      if (nivelPremiado >= 5) { callback(null); return; }
+    function loadProximoBeneficio(nivelActual, callback) {
+      // nivelActual ya viene loop-aware (nivelCicloEfectivo): con el circuito
+      // infinito una vez en nivel 5, siempre hay un "próximo premio" válido.
       bataterosClient
         .from('beneficios')
         .select('id, nivel, nombre, puntos_requeridos')
-        .eq('nivel', nivelPremiado + 1)
+        .eq('nivel', nivelActual + 1)
         .eq('activo', true)
         .maybeSingle()
         .then(function (res) { callback(res.data || null); });
@@ -1568,10 +1588,11 @@
           var beneficiosPorNivel = {};
           (res.data || []).forEach(function (b) { beneficiosPorNivel[b.nivel] = b.nombre; });
 
+          var nivelEfectivo = nivelCicloEfectivo(cliente);
           var html = '';
           for (var i = 0; i < LOYALTY_TIERS.length; i++) {
             var nivel = i + 1;
-            var estado = nivel <= cliente.nivel_premiado ? 'done' : (nivel === cliente.nivel_premiado + 1 ? 'current' : 'locked');
+            var estado = nivel <= nivelEfectivo ? 'done' : (nivel === nivelEfectivo + 1 ? 'current' : 'locked');
             var badgeContent = estado === 'done'
               ? '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>'
               : nivel;
@@ -1737,7 +1758,8 @@
       document.getElementById('loyalty-card-socio').textContent =
         cliente.numero_socio ? 'Socio N.° ' + cliente.numero_socio : '';
       document.getElementById('loyalty-card-tier').textContent = loyaltyTierName(cliente.nivel_premiado);
-      renderLoyaltyTrack(cliente.nivel_premiado);
+      renderVueltaBadge(cliente);
+      renderLoyaltyTrack(nivelCicloEfectivo(cliente));
       renderPremiosTab(cliente);
       renderPerfilTab(cliente);
       renderActividadReciente(cliente);
@@ -1748,7 +1770,7 @@
           ? 'Tu avance se reinició por inactividad — ¡volvé a sumar!'
           : 'Vence el ' + formatFecha(addDays(progreso.fechaReferencia, LOYALTY_VENCIMIENTO_DIAS));
 
-        loadProximoBeneficio(cliente.nivel_premiado, function (proximo) {
+        loadProximoBeneficio(nivelCicloEfectivo(cliente), function (proximo) {
           var nextEl = document.getElementById('loyalty-card-next');
           var rewardEl = document.getElementById('loyalty-card-reward');
           if (!proximo) {
@@ -1756,9 +1778,10 @@
             rewardEl.textContent = '';
             return;
           }
+          var enVuelta = cliente.nivel_premiado >= 5;
           var faltan = Math.max(0, proximo.puntos_requeridos - progreso.puntos);
           nextEl.textContent = faltan > 0
-            ? 'Faltan ' + faltan + ' puntos para ' + LOYALTY_TIER_NAMES[proximo.nivel - 1]
+            ? 'Faltan ' + faltan + ' puntos para ' + (enVuelta ? 'tu próximo premio' : LOYALTY_TIER_NAMES[proximo.nivel - 1])
             : '¡Ya podés canjear tu próximo premio!';
           rewardEl.textContent = proximo.nombre || '';
         });
@@ -1906,8 +1929,9 @@
       btnEl.classList.add('is-selected');
       document.getElementById('staff-canje-error').hidden = true;
       document.getElementById('staff-canje-success').hidden = true;
-      document.getElementById('staff-canje-confirm-text').textContent =
-        'Se entrega el premio y el cliente pasa a Nivel ' + beneficio.nivel + ' · ' + LOYALTY_TIER_NAMES[beneficio.nivel - 1] + '.';
+      document.getElementById('staff-canje-confirm-text').textContent = staffCurrentCliente && staffCurrentCliente.nivel_premiado >= 5
+        ? 'Se entrega el premio: ' + beneficio.nombre + '.'
+        : 'Se entrega el premio y el cliente pasa a Nivel ' + beneficio.nivel + ' · ' + LOYALTY_TIER_NAMES[beneficio.nivel - 1] + '.';
       document.getElementById('staff-canje-confirm').hidden = false;
     }
 
@@ -1935,8 +1959,18 @@
         }
         okEl.textContent = 'Canjeado: ' + beneficio.nombre + '.';
         okEl.hidden = false;
-        staffCurrentCliente.nivel_premiado = beneficio.nivel;
-        refreshStaffDetailStats();
+        // Releemos el cliente en vez de parchear nivel_premiado a mano: una
+        // vez en el circuito de vueltas, el canje puede tocar nivel_ciclo
+        // y/o vuelta en vez de nivel_premiado, según corresponda.
+        bataterosClient
+          .from('clientes_loyalty')
+          .select(CLIENTE_COLUMNS)
+          .eq('id', staffCurrentCliente.id)
+          .single()
+          .then(function (clienteRes) {
+            if (clienteRes.data) staffCurrentCliente = clienteRes.data;
+            refreshStaffDetailStats();
+          });
       });
     }
 
@@ -1945,10 +1979,13 @@
       document.getElementById('staff-detail-nivel').textContent =
         'Nivel ' + staffCurrentCliente.nivel_premiado + ' · ' + loyaltyTierName(staffCurrentCliente.nivel_premiado);
 
+      var vueltaEl = document.getElementById('staff-detail-vuelta');
+      if (vueltaEl) vueltaEl.textContent = staffCurrentCliente.vuelta || 1;
+
       loadProgress(staffCurrentCliente, function (progreso) {
         staffCurrentProgreso = progreso.puntos;
         document.getElementById('staff-detail-saldo').textContent = progreso.puntos;
-        loadProximoBeneficio(staffCurrentCliente.nivel_premiado, function (proximo) {
+        loadProximoBeneficio(nivelCicloEfectivo(staffCurrentCliente), function (proximo) {
           renderStaffCanjeNext(proximo, progreso.puntos);
         });
 

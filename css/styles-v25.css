@@ -3604,6 +3604,21 @@ body.modal-open { overflow: hidden; }
   text-align: center;
   padding: 6px 22px 0;
 }
+.loyalty-card__vuelta {
+  display: block;
+  width: fit-content;
+  margin: 4px auto 0;
+  font-family: var(--font-accent);
+  font-weight: 700;
+  font-size: 0.625rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--loyalty-copper);
+  background: rgba(201, 134, 63, 0.12);
+  border-radius: 20px;
+  padding: 3px 10px;
+}
+.loyalty-card__vuelta[hidden] { display: none; }
 .loyalty-card__tier {
   display: block;
   font-family: var(--font-display);
@@ -3779,7 +3794,7 @@ body.modal-open { overflow: hidden; }
 }
 .staff-detail__chips {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 1px;
   background: var(--cream-darker);
 }
