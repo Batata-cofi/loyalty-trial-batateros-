@@ -4334,6 +4334,13 @@ body.modal-open { overflow: hidden; }
   margin-top: 2px;
   overflow-wrap: anywhere;
 }
+.club-activity-desc small.club-activity-vence {
+  font-style: italic;
+  color: var(--ink-light);
+}
+.club-activity-desc small.club-activity-vence.is-vencido {
+  color: #a5395c;
+}
 .club-activity-pts {
   font-family: var(--font-sans);
   font-weight: 700;

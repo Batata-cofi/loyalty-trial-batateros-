@@ -1468,26 +1468,23 @@
       el.hidden = true;
     }
 
-    // Avance hacia el próximo premio: puntos cargados desde el último canje
-    // (o desde el alta, si nunca canjeó). Si pasaron más de LOYALTY_VENCIMIENTO_DIAS días desde la
-    // carga más reciente de ese tramo, el avance se considera reseteado a 0
-    // — se calcula al vuelo, no hace falta ningún job para "aplicar" el reset.
+    // Balance de puntos con vencimiento por compra (FIFO): cada compra suma
+    // puntos que vencen LOYALTY_PUNTOS_VENCIMIENTO_DIAS días después de esa
+    // compra puntual, no según inactividad general. Al canjear, se consume
+    // primero de las compras más viejas (las que vencen antes) — se simula
+    // recorriendo las compras en orden cronológico y "pagando" el total
+    // histórico canjeado contra ellas, para saber cuánto le queda vivo a
+    // cada una hoy.
     function loadProgress(cliente, callback) {
-      // Balance real: todo lo ganado en la vida del cliente menos todo lo
-      // efectivamente gastado en canjes (canjes.puntos_utilizados, que el
-      // RPC canjear_premio ahora fija al costo exacto del nivel, no al saldo
-      // completo) — así un canje solo consume lo que vale ese nivel y el
-      // sobrante queda disponible para el próximo, en vez de resetearse a 0.
       bataterosClient
         .from('puntos')
-        .select('puntos_otorgados, fecha_acumulado')
+        .select('puntos_otorgados, fecha_acumulado, fecha_vencimiento')
         .eq('cliente_id', cliente.id)
+        .order('fecha_acumulado', { ascending: true })
         .then(function (puntosRes) {
           var rows = puntosRes.data || [];
-          var totalGanado = 0;
           var fechaUltimaCarga = null;
           rows.forEach(function (r) {
-            totalGanado += r.puntos_otorgados;
             if (!fechaUltimaCarga || r.fecha_acumulado > fechaUltimaCarga) fechaUltimaCarga = r.fecha_acumulado;
           });
 
@@ -1496,23 +1493,36 @@
             .select('puntos_utilizados')
             .eq('cliente_id', cliente.id)
             .then(function (canjesRes) {
-              var totalGastado = (canjesRes.data || []).reduce(function (acc, c) {
+              var gastoRestante = (canjesRes.data || []).reduce(function (acc, c) {
                 return acc + (c.puntos_utilizados || 0);
               }, 0);
-              var balance = Math.max(0, totalGanado - totalGastado);
+
+              var hoy = new Date().toISOString().slice(0, 10);
+              var balance = 0;
+              var proximoVencimiento = null;
+              rows.forEach(function (r) {
+                var consumido = Math.min(r.puntos_otorgados, gastoRestante);
+                gastoRestante -= consumido;
+                var restante = r.puntos_otorgados - consumido;
+                var vigente = !r.fecha_vencimiento || r.fecha_vencimiento >= hoy;
+                if (restante > 0 && vigente) {
+                  balance += restante;
+                  if (!proximoVencimiento || r.fecha_vencimiento < proximoVencimiento) proximoVencimiento = r.fecha_vencimiento;
+                }
+              });
 
               var fechaReferencia = fechaUltimaCarga || cliente.created_at;
               var diasInactivo = (Date.now() - new Date(fechaReferencia).getTime()) / 86400000;
-              var vencido = diasInactivo > LOYALTY_VENCIMIENTO_DIAS;
               // Nivel vigente: baja un escalón por cada LOYALTY_VENCIMIENTO_DIAS de
-              // inactividad (en cascada) — gobierna solo el descuento accesorio.
+              // inactividad (en cascada) — gobierna solo el descuento accesorio,
+              // regla aparte del vencimiento por compra de arriba.
               // nivel_premiado (el premio grande ya entregado) nunca se toca acá.
               var escalonesPerdidos = Math.floor(diasInactivo / LOYALTY_VENCIMIENTO_DIAS);
               var nivelVigente = Math.max(0, cliente.nivel_premiado - escalonesPerdidos);
               callback({
-                puntos: vencido ? 0 : balance,
+                puntos: balance,
                 fechaReferencia: fechaReferencia,
-                vencido: vencido,
+                proximoVencimiento: proximoVencimiento,
                 nivelVigente: nivelVigente
               });
             });
@@ -1683,10 +1693,19 @@
       return '$' + Math.round(n || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
     }
 
+    function formatVencimiento(fechaVencimiento) {
+      if (!fechaVencimiento) return '';
+      var hoy = new Date().toISOString().slice(0, 10);
+      var texto = formatFecha(new Date(fechaVencimiento));
+      return fechaVencimiento < hoy
+        ? '<small class="club-activity-vence is-vencido">Venció el ' + texto + '</small>'
+        : '<small class="club-activity-vence">Vence el ' + texto + '</small>';
+    }
+
     function buildActivityRowHtml(r) {
       return '<div class="club-activity-row">' +
         '<div class="club-activity-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--loyalty-borravino)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13a3 3 0 0 1 0 6h-1"/><path d="M4 8v8a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3v-2"/></svg></div>' +
-        '<div class="club-activity-desc"><strong>Compra en Batata Cofi</strong><small>' + formatRelativo(r.fecha_acumulado) + ' · ' + formatMonto(r.monto_compra) + '</small></div>' +
+        '<div class="club-activity-desc"><strong>Compra en Batata Cofi</strong><small>' + formatRelativo(r.fecha_acumulado) + ' · ' + formatMonto(r.monto_compra) + '</small>' + formatVencimiento(r.fecha_vencimiento) + '</div>' +
         '<span class="club-activity-pts">+' + r.puntos_otorgados + ' pts</span>' +
         '</div>';
     }
@@ -1728,7 +1747,7 @@
 
       bataterosClient
         .from('puntos')
-        .select('monto_compra, puntos_otorgados, fecha_acumulado')
+        .select('monto_compra, puntos_otorgados, fecha_acumulado, fecha_vencimiento')
         .eq('cliente_id', currentClienteActividad.id)
         .order('fecha_acumulado', { ascending: false })
         .limit(20)
@@ -1766,9 +1785,9 @@
 
       loadProgress(cliente, function (progreso) {
         document.getElementById('loyalty-card-saldo').textContent = progreso.puntos;
-        document.getElementById('loyalty-card-vence').textContent = progreso.vencido
-          ? 'Tu avance se reinició por inactividad — ¡volvé a sumar!'
-          : 'Vence el ' + formatFecha(addDays(progreso.fechaReferencia, LOYALTY_VENCIMIENTO_DIAS));
+        document.getElementById('loyalty-card-vence').textContent = progreso.proximoVencimiento
+          ? 'Los puntos más próximos vencen el ' + formatFecha(new Date(progreso.proximoVencimiento))
+          : '';
 
         loadProximoBeneficio(nivelCicloEfectivo(cliente), function (proximo) {
           var nextEl = document.getElementById('loyalty-card-next');
