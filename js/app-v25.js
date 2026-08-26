@@ -1436,6 +1436,7 @@
     var staffCurrentCliente = null;
     var staffCurrentProgreso = 0;
     var staffSelectedBeneficio = null;
+    var staffDescuentosActivos = [];
 
     function showView(name) {
       Object.keys(views).forEach(function (key) {
@@ -2054,8 +2055,13 @@
         });
 
         var descEl = document.getElementById('staff-detail-descuento');
+        var marcarBtn = document.getElementById('staff-marcar-descuento-btn');
+        document.getElementById('staff-marcar-descuento-error').hidden = true;
+        document.getElementById('staff-marcar-descuento-success').hidden = true;
         if (progreso.nivelVigente < 2) {
           descEl.textContent = 'Ninguno';
+          staffDescuentosActivos = [];
+          marcarBtn.hidden = true;
           return;
         }
         loadDescuentosPorNivel(progreso.nivelVigente, function (descuentos) {
@@ -2063,6 +2069,8 @@
             ? descuentos.map(function (d) { return (CATEGORIA_NOMBRES[d.categoria] || d.categoria) + ' ' + d.porcentaje + '%'; }).join(' · ') +
               (progreso.nivelVigente < staffCurrentCliente.nivel_premiado ? ' (bajó por inactividad)' : '')
             : 'Ninguno';
+          staffDescuentosActivos = descuentos;
+          marcarBtn.hidden = descuentos.length === 0;
         });
       });
     }
@@ -2361,6 +2369,30 @@
     if (staffCanjeConfirmBtn) {
       staffCanjeConfirmBtn.addEventListener('click', function () {
         if (staffSelectedBeneficio) redeemBeneficio(staffSelectedBeneficio);
+      });
+    }
+
+    var staffMarcarDescuentoBtn = document.getElementById('staff-marcar-descuento-btn');
+    if (staffMarcarDescuentoBtn) {
+      staffMarcarDescuentoBtn.addEventListener('click', function () {
+        var errEl = document.getElementById('staff-marcar-descuento-error');
+        var okEl = document.getElementById('staff-marcar-descuento-success');
+        errEl.hidden = true;
+        okEl.hidden = true;
+        if (!staffCurrentCliente || !staffDescuentosActivos.length) return;
+
+        var filas = staffDescuentosActivos.map(function (d) {
+          return { cliente_id: staffCurrentCliente.id, categoria: d.categoria, porcentaje: d.porcentaje };
+        });
+        bataterosClient.from('descuentos_aplicados').insert(filas).then(function (res) {
+          if (res.error) {
+            errEl.textContent = res.error.message;
+            errEl.hidden = false;
+          } else {
+            okEl.textContent = 'Descuento registrado.';
+            okEl.hidden = false;
+          }
+        });
       });
     }
 
