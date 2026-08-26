@@ -4139,14 +4139,14 @@ body.modal-open { overflow: hidden; }
 .club-disc-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  gap: 8px;
 }
 .club-disc-cell {
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 14px 10px;
+  padding: 11px 10px;
   background: rgba(139, 42, 74, 0.05);
   border: 1px solid var(--loyalty-borravino);
   border-radius: 12px;
@@ -4170,7 +4170,7 @@ body.modal-open { overflow: hidden; }
   font-family: var(--font-sans);
   font-size: 0.6875rem;
   color: var(--ink-mid);
-  margin-top: 8px;
+  margin-top: 6px;
   line-height: 1.4;
 }
 
@@ -4526,6 +4526,11 @@ body.modal-open { overflow: hidden; }
   .club-tier-badge { width: 28px; height: 28px; font-size: 0.6875rem; }
   .club-tier-meta { display: none; }
   #club-panel-premios .club-section-label { margin-top: 10px; margin-bottom: 5px; }
+  .club-disc-grid { gap: 6px; }
+  .club-disc-cell { padding: 9px 8px; }
+  .club-disc-pct { font-size: 1.1875rem; }
+  .club-disc-lvl { font-size: 0.6875rem; }
+  .club-disc-desc { margin-top: 4px; font-size: 0.625rem; }
 
   .loyalty-view--staff .club-badge--logo { width: 42px; height: 42px; margin-bottom: 6px; }
   .loyalty-view--staff .loyalty-modal__title { margin-bottom: 12px; font-size: 1.5rem; }
