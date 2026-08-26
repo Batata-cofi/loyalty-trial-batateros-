@@ -1378,6 +1378,23 @@
     return date.getDate() + ' de ' + VOUCHER_MONTHS_ES[date.getMonth()];
   }
 
+  // `new Date('2026-09-23')` parsea como medianoche UTC — en Argentina
+  // (UTC-3) eso cae el 22 a las 21hs local, y .getDate() usa hora local:
+  // muestra un día menos. Las columnas `date` (fecha_vencimiento) hay que
+  // parsearlas como fecha calendario local, no como instante UTC.
+  function parseFechaLocal(fechaStr) {
+    var partes = String(fechaStr).slice(0, 10).split('-');
+    return new Date(Number(partes[0]), Number(partes[1]) - 1, Number(partes[2]));
+  }
+
+  // "Hoy" en hora Argentina (UTC-3, sin horario de verano), no UTC — entre
+  // las 21:00 y las 23:59 hora local, `new Date().toISOString()` ya cayó en
+  // el día siguiente en UTC y marcaría puntos vigentes como vencidos antes
+  // de tiempo.
+  function hoyArgentina() {
+    return new Date(Date.now() - 3 * 3600000).toISOString().slice(0, 10);
+  }
+
   function renderVueltaBadge(cliente) {
     var el = document.getElementById('loyalty-card-vuelta');
     if (!el) return;
@@ -1497,7 +1514,7 @@
                 return acc + (c.puntos_utilizados || 0);
               }, 0);
 
-              var hoy = new Date().toISOString().slice(0, 10);
+              var hoy = hoyArgentina();
               var balance = 0;
               var porFecha = {};
               rows.forEach(function (r) {
@@ -1707,8 +1724,8 @@
 
     function formatVencimiento(fechaVencimiento) {
       if (!fechaVencimiento) return '';
-      var hoy = new Date().toISOString().slice(0, 10);
-      var texto = formatFecha(new Date(fechaVencimiento));
+      var hoy = hoyArgentina();
+      var texto = formatFecha(parseFechaLocal(fechaVencimiento));
       return fechaVencimiento < hoy
         ? '<small class="club-activity-vence is-vencido">Venció el ' + texto + '</small>'
         : '<small class="club-activity-vence">Vence el ' + texto + '</small>';
@@ -1803,7 +1820,7 @@
         document.getElementById('loyalty-card-tier').textContent = loyaltyTierName(progreso.nivelVigente);
         document.getElementById('loyalty-card-saldo').textContent = progreso.puntos;
         document.getElementById('loyalty-card-vence').textContent = progreso.proximoVencimiento
-          ? progreso.proximoVencimientoMonto + ' vencen el ' + formatFecha(new Date(progreso.proximoVencimiento))
+          ? progreso.proximoVencimientoMonto + ' vencen el ' + formatFecha(parseFechaLocal(progreso.proximoVencimiento))
           : '';
 
         loadProximoBeneficio(nivelCicloEfectivo(cliente), function (proximo) {
