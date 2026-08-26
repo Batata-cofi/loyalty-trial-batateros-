@@ -1303,7 +1303,7 @@
   // inactividad (LOYALTY_VENCIMIENTO_DIAS sin cargar puntos) es el AVANCE hacia el próximo
   // premio, no el nivel ya obtenido — así nunca se re-abre un premio ya dado.
 
-  var LOYALTY_TIERS = [400, 650, 950, 1300, 1700];
+  var LOYALTY_TIERS = [400, 650, 900, 1200, 1500];
   var LOYALTY_TIER_NAMES = [
     'Bienvenida Batatera',
     'Amigo de la Casa',
@@ -1312,11 +1312,11 @@
     'Prestige Batata Friend'
   ];
   var LOYALTY_TIER_IMAGES = [
-    'img/menu/cortado.jpg',
+    'img/menu/latte.jpg',
     'img/menu/latte-y-cookie-pistacho-o-frambuesa.jpg',
-    'img/menu/flat-white.jpg',
-    'img/productos/toston-de-perso.jpg',
-    'img/menu/latte.jpg'
+    'img/menu/suaave.jpg',
+    'img/productos/toston-de-palta.jpg',
+    'img/menu/latte-y-chipa.jpg'
   ];
   var LOYALTY_VENCIMIENTO_DIAS = 30;
   var LOYALTY_PENDING_KEY = 'batata_loyalty_pending';
