@@ -4137,40 +4137,41 @@ body.modal-open { overflow: hidden; }
 
 /* Premios: descuentos por nivel */
 .club-disc-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.club-disc-cell {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  align-items: center;
+  text-align: center;
+  padding: 14px 10px;
+  background: rgba(139, 42, 74, 0.05);
+  border: 1px solid var(--loyalty-borravino);
+  border-radius: 12px;
+  cursor: pointer;
+  box-sizing: border-box;
 }
-.club-disc-nivel {
-  padding: 12px 14px;
-  background: #fff;
-  border: 1px solid var(--cream-darker);
-  border-radius: 10px;
-}
-.club-disc-nivel-label {
-  display: block;
-  font-family: var(--font-accent);
-  font-weight: 900;
-  font-size: 0.6875rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--ink-mid);
-  margin-bottom: 6px;
-}
-.club-disc-items {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 16px;
-}
-.club-disc-item {
-  font-family: var(--font-sans);
-  font-size: 0.8125rem;
-  color: var(--ink);
-}
-.club-disc-item strong {
-  color: var(--loyalty-borravino);
+.club-disc-pct {
+  font-family: var(--font-display);
   font-weight: 800;
-  margin-right: 4px;
+  font-size: 1.5rem;
+  color: var(--loyalty-borravino);
+  line-height: 1.1;
+}
+.club-disc-lvl {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  color: var(--ink-mid);
+  margin-top: 2px;
+}
+.club-disc-desc {
+  font-family: var(--font-sans);
+  font-size: 0.6875rem;
+  color: var(--ink-mid);
+  margin-top: 8px;
+  line-height: 1.4;
 }
 
 /* Mi perfil */

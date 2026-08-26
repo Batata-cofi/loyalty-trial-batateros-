@@ -1604,6 +1604,28 @@
       requestAnimationFrame(function () { premioModal.classList.add('is-visible'); });
     }
 
+    function openDescuentoModal(nivel, descuentos) {
+      var modalEl = document.getElementById('club-descuento-modal');
+      if (!modalEl) return;
+      document.getElementById('club-descuento-modal-title').textContent = 'Nivel ' + nivel + ' · ' + loyaltyTierName(nivel);
+      document.getElementById('club-descuento-modal-list').innerHTML = descuentos.map(function (d) {
+        return '<div class="loyalty-descuento__row"><span>' + (CATEGORIA_NOMBRES[d.categoria] || d.categoria) + '</span><strong>' + d.porcentaje + '%</strong></div>';
+      }).join('');
+      modalEl.hidden = false;
+      document.body.classList.add('modal-open');
+      requestAnimationFrame(function () { modalEl.classList.add('is-visible'); });
+    }
+
+    function closeDescuentoModal() {
+      var modalEl = document.getElementById('club-descuento-modal');
+      if (!modalEl) return;
+      modalEl.classList.remove('is-visible');
+      setTimeout(function () {
+        modalEl.hidden = true;
+        document.body.classList.remove('modal-open');
+      }, 250);
+    }
+
     function closePremioModal() {
       var premioModal = document.getElementById('club-premio-modal');
       if (!premioModal) return;
@@ -1676,11 +1698,21 @@
           var niveles = Object.keys(porNivel).map(Number).sort(function (a, b) { return a - b; });
           var gridEl = document.getElementById('club-disc-grid');
           gridEl.innerHTML = niveles.map(function (nivel) {
-            var items = porNivel[nivel].map(function (d) {
-              return '<span class="club-disc-item"><strong>' + d.porcentaje + '%</strong> ' + (CATEGORIA_NOMBRES[d.categoria] || d.categoria) + '</span>';
-            }).join('');
-            return '<div class="club-disc-nivel"><span class="club-disc-nivel-label">Nivel ' + nivel + '</span><div class="club-disc-items">' + items + '</div></div>';
+            var items = porNivel[nivel];
+            var maxPct = Math.max.apply(null, items.map(function (d) { return d.porcentaje; }));
+            var resumen = items.map(function (d) {
+              return (CATEGORIA_NOMBRES[d.categoria] || d.categoria) + ' ' + d.porcentaje + '%';
+            }).join(' · ');
+            return '<button type="button" class="club-disc-cell" data-disc-nivel="' + nivel + '">' +
+              '<span class="club-disc-pct">' + maxPct + '%</span>' +
+              '<span class="club-disc-lvl">Nivel ' + nivel + '</span>' +
+              '<span class="club-disc-desc">' + resumen + '</span>' +
+              '</button>';
           }).join('');
+          gridEl.querySelectorAll('[data-disc-nivel]').forEach(function (btn) {
+            var nivel = parseInt(btn.getAttribute('data-disc-nivel'), 10);
+            btn.addEventListener('click', function () { openDescuentoModal(nivel, porNivel[nivel]); });
+          });
         });
     }
 
@@ -2198,6 +2230,17 @@
       });
       document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape' && !premioModal.hidden) closePremioModal();
+      });
+    }
+
+    var descuentoModal = document.getElementById('club-descuento-modal');
+    if (descuentoModal) {
+      var descuentoModalClose = descuentoModal.querySelector('.club-activity-modal__close');
+      descuentoModal.addEventListener('click', function (e) {
+        if (e.target === descuentoModal || e.target === descuentoModalClose) closeDescuentoModal();
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && !descuentoModal.hidden) closeDescuentoModal();
       });
     }
 
