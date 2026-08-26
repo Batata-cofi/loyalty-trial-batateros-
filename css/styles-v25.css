@@ -3345,6 +3345,12 @@ body.modal-open { overflow: hidden; }
   margin: 0 auto;
   padding: 0 24px;
 }
+.loyalty-cta__logo {
+  height: 56px;
+  width: auto;
+  margin: 0 auto 18px;
+  display: block;
+}
 .loyalty-cta .section-label {
   color: var(--loyalty-gold);
 }
