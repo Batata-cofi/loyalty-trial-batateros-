@@ -1499,7 +1499,7 @@
 
               var hoy = new Date().toISOString().slice(0, 10);
               var balance = 0;
-              var proximoVencimiento = null;
+              var porFecha = {};
               rows.forEach(function (r) {
                 var consumido = Math.min(r.puntos_otorgados, gastoRestante);
                 gastoRestante -= consumido;
@@ -1507,9 +1507,14 @@
                 var vigente = !r.fecha_vencimiento || r.fecha_vencimiento >= hoy;
                 if (restante > 0 && vigente) {
                   balance += restante;
-                  if (!proximoVencimiento || r.fecha_vencimiento < proximoVencimiento) proximoVencimiento = r.fecha_vencimiento;
+                  porFecha[r.fecha_vencimiento] = (porFecha[r.fecha_vencimiento] || 0) + restante;
                 }
               });
+              var proximoVencimiento = null;
+              Object.keys(porFecha).forEach(function (f) {
+                if (!proximoVencimiento || f < proximoVencimiento) proximoVencimiento = f;
+              });
+              var proximoVencimientoMonto = proximoVencimiento ? porFecha[proximoVencimiento] : 0;
 
               var fechaReferencia = fechaUltimaCarga || cliente.created_at;
               var diasInactivo = (Date.now() - new Date(fechaReferencia).getTime()) / 86400000;
@@ -1523,6 +1528,7 @@
                 puntos: balance,
                 fechaReferencia: fechaReferencia,
                 proximoVencimiento: proximoVencimiento,
+                proximoVencimientoMonto: proximoVencimientoMonto,
                 nivelVigente: nivelVigente
               });
             });
@@ -1797,7 +1803,7 @@
         document.getElementById('loyalty-card-tier').textContent = loyaltyTierName(progreso.nivelVigente);
         document.getElementById('loyalty-card-saldo').textContent = progreso.puntos;
         document.getElementById('loyalty-card-vence').textContent = progreso.proximoVencimiento
-          ? 'Los puntos más próximos vencen el ' + formatFecha(new Date(progreso.proximoVencimiento))
+          ? progreso.proximoVencimientoMonto + ' vencen el ' + formatFecha(new Date(progreso.proximoVencimiento))
           : '';
 
         loadProximoBeneficio(nivelCicloEfectivo(cliente), function (proximo) {
