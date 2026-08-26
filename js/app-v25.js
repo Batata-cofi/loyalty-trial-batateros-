@@ -1700,13 +1700,9 @@
           gridEl.innerHTML = niveles.map(function (nivel) {
             var items = porNivel[nivel];
             var maxPct = Math.max.apply(null, items.map(function (d) { return d.porcentaje; }));
-            var resumen = items.map(function (d) {
-              return (CATEGORIA_NOMBRES[d.categoria] || d.categoria) + ' ' + d.porcentaje + '%';
-            }).join(' · ');
             return '<button type="button" class="club-disc-cell" data-disc-nivel="' + nivel + '">' +
               '<span class="club-disc-pct">' + maxPct + '%</span>' +
               '<span class="club-disc-lvl">Nivel ' + nivel + '</span>' +
-              '<span class="club-disc-desc">' + resumen + '</span>' +
               '</button>';
           }).join('');
           gridEl.querySelectorAll('[data-disc-nivel]').forEach(function (btn) {

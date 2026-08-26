@@ -55,6 +55,7 @@ body {
   background: var(--cream);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
 }
 
 img {
@@ -547,6 +548,7 @@ section[id] {
   margin: 0 -20px;
   padding: 4px 20px 16px;
   -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
 }
 .combos-feature__cards::-webkit-scrollbar { display: none; }
 
@@ -785,6 +787,7 @@ body.modal-open { overflow: hidden; }
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
+  touch-action: pan-x;
 }
 .tabs__track::-webkit-scrollbar { display: none; }
 
@@ -1526,6 +1529,7 @@ body.modal-open { overflow: hidden; }
   scrollbar-width: none;
   white-space: nowrap;
   -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
 }
 .serving-now__items::-webkit-scrollbar { display: none; }
 .serving-now__item {
@@ -3130,6 +3134,7 @@ body.modal-open { overflow: hidden; }
   scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
   gap: 0;
+  touch-action: pan-x;
 }
 .product-modal__slide {
   flex: 0 0 100%;
@@ -4138,40 +4143,34 @@ body.modal-open { overflow: hidden; }
 /* Premios: descuentos por nivel */
 .club-disc-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
 }
 .club-disc-cell {
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 11px 10px;
+  padding: 10px 4px;
   background: rgba(139, 42, 74, 0.05);
   border: 1px solid var(--loyalty-borravino);
   border-radius: 12px;
   cursor: pointer;
   box-sizing: border-box;
+  min-width: 0;
 }
 .club-disc-pct {
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: 1.5rem;
+  font-size: 1.1875rem;
   color: var(--loyalty-borravino);
   line-height: 1.1;
 }
 .club-disc-lvl {
   font-family: var(--font-sans);
-  font-size: 0.75rem;
-  color: var(--ink-mid);
-  margin-top: 2px;
-}
-.club-disc-desc {
-  font-family: var(--font-sans);
   font-size: 0.6875rem;
   color: var(--ink-mid);
-  margin-top: 6px;
-  line-height: 1.4;
+  margin-top: 2px;
 }
 
 /* Mi perfil */
@@ -4526,11 +4525,8 @@ body.modal-open { overflow: hidden; }
   .club-tier-badge { width: 28px; height: 28px; font-size: 0.6875rem; }
   .club-tier-meta { display: none; }
   #club-panel-premios .club-section-label { margin-top: 10px; margin-bottom: 5px; }
-  .club-disc-grid { gap: 6px; }
-  .club-disc-cell { padding: 9px 8px; }
-  .club-disc-pct { font-size: 1.1875rem; }
-  .club-disc-lvl { font-size: 0.6875rem; }
-  .club-disc-desc { margin-top: 4px; font-size: 0.625rem; }
+  .club-disc-cell { padding: 8px 4px; }
+  .club-disc-pct { font-size: 1.0625rem; }
 
   .loyalty-view--staff .club-badge--logo { width: 42px; height: 42px; margin-bottom: 6px; }
   .loyalty-view--staff .loyalty-modal__title { margin-bottom: 12px; font-size: 1.5rem; }
