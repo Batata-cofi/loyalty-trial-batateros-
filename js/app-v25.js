@@ -1776,7 +1776,6 @@
       document.getElementById('club-hero-nombre').textContent = cliente.nombre || '—';
       document.getElementById('loyalty-card-socio').textContent =
         cliente.numero_socio ? 'Socio N.° ' + cliente.numero_socio : '';
-      document.getElementById('loyalty-card-tier').textContent = loyaltyTierName(cliente.nivel_premiado);
       renderVueltaBadge(cliente);
       renderLoyaltyTrack(nivelCicloEfectivo(cliente));
       renderPremiosTab(cliente);
@@ -1784,6 +1783,12 @@
       renderActividadReciente(cliente);
 
       loadProgress(cliente, function (progreso) {
+        // La jerarquía visible (badge + descuento) sigue el nivel VIGENTE
+        // (baja por inactividad, se recupera solo) — nivel_premiado es el
+        // techo permanente que solo gobierna qué premios ya se entregaron
+        // y nunca se vuelven a ofrecer, no lo que se muestra como "nivel
+        // actual" del cliente.
+        document.getElementById('loyalty-card-tier').textContent = loyaltyTierName(progreso.nivelVigente);
         document.getElementById('loyalty-card-saldo').textContent = progreso.puntos;
         document.getElementById('loyalty-card-vence').textContent = progreso.proximoVencimiento
           ? 'Los puntos más próximos vencen el ' + formatFecha(new Date(progreso.proximoVencimiento))
@@ -1995,13 +2000,21 @@
 
     function refreshStaffDetailStats() {
       if (!staffCurrentCliente) return;
-      document.getElementById('staff-detail-nivel').textContent =
-        'Nivel ' + staffCurrentCliente.nivel_premiado + ' · ' + loyaltyTierName(staffCurrentCliente.nivel_premiado);
 
       var vueltaEl = document.getElementById('staff-detail-vuelta');
       if (vueltaEl) vueltaEl.textContent = staffCurrentCliente.vuelta || 1;
 
       loadProgress(staffCurrentCliente, function (progreso) {
+        // El chip "Nivel" muestra la jerarquía VIGENTE (baja por inactividad,
+        // se recupera sola) — si está por debajo del techo permanente que ya
+        // tiene ganado, lo aclaramos para que el staff entienda por qué no
+        // se le puede volver a ofrecer un premio ya entregado.
+        var nivelEl = document.getElementById('staff-detail-nivel');
+        nivelEl.textContent = 'Nivel ' + progreso.nivelVigente + ' · ' + loyaltyTierName(progreso.nivelVigente) +
+          (progreso.nivelVigente < staffCurrentCliente.nivel_premiado
+            ? ' (bajó desde Nivel ' + staffCurrentCliente.nivel_premiado + ')'
+            : '');
+
         staffCurrentProgreso = progreso.puntos;
         document.getElementById('staff-detail-saldo').textContent = progreso.puntos;
         loadProximoBeneficio(nivelCicloEfectivo(staffCurrentCliente), function (proximo) {
