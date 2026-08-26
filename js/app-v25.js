@@ -1541,17 +1541,20 @@
         .then(function (res) { callback(res.data || null); });
     }
 
-    function loadDescuentoActivo(nivelPremiado, callback) {
-      if (nivelPremiado < 2) { callback(null); return; }
+    var CATEGORIA_NOMBRES = { cafe: 'Café', retail: 'Retail', pasteleria: 'Pastelería', cocina: 'Cocina' };
+
+    // Fidelidad v2: el descuento ya no es un % único por nivel, es una
+    // matriz nivel × categoría (café/retail/pastelería/cocina, con montos
+    // distintos entre sí). Se aplica manualmente en Fudo por el staff — acá
+    // solo se muestra como referencia.
+    function loadDescuentosPorNivel(nivel, callback) {
+      if (nivel < 1) { callback([]); return; }
       bataterosClient
-        .from('descuentos_accesorios')
-        .select('nivel, descripcion, porcentaje')
-        .lte('nivel', nivelPremiado)
-        .eq('activo', true)
-        .order('nivel', { ascending: false })
-        .limit(1)
-        .maybeSingle()
-        .then(function (res) { callback(res.data || null); });
+        .from('descuentos_categoria')
+        .select('categoria, porcentaje')
+        .eq('nivel', nivel)
+        .order('categoria', { ascending: true })
+        .then(function (res) { callback(res.data || []); });
     }
 
     function formatMesAno(iso) {
@@ -1636,21 +1639,24 @@
         });
 
       bataterosClient
-        .from('descuentos_accesorios')
-        .select('nivel, descripcion, porcentaje')
-        .eq('activo', true)
+        .from('descuentos_categoria')
+        .select('nivel, categoria, porcentaje')
         .order('nivel', { ascending: true })
         .then(function (res) {
           var rows = res.data || [];
-          var gridEl = document.getElementById('club-disc-grid');
-          gridEl.innerHTML = rows.map(function (r) {
-            return '<div class="club-disc-cell"><span class="club-disc-pct">' + r.porcentaje + '%</span>' +
-              '<span class="club-disc-lvl">Nivel ' + r.nivel + '</span>' +
-              '<div class="club-disc-desc">' + escapeHtml(r.descripcion) + '</div></div>';
-          }).join('');
-          gridEl.querySelectorAll('.club-disc-cell').forEach(function (cell) {
-            cell.addEventListener('click', function () { cell.classList.toggle('is-open'); });
+          var porNivel = {};
+          rows.forEach(function (r) {
+            if (!porNivel[r.nivel]) porNivel[r.nivel] = [];
+            porNivel[r.nivel].push(r);
           });
+          var niveles = Object.keys(porNivel).map(Number).sort(function (a, b) { return a - b; });
+          var gridEl = document.getElementById('club-disc-grid');
+          gridEl.innerHTML = niveles.map(function (nivel) {
+            var items = porNivel[nivel].map(function (d) {
+              return '<span class="club-disc-item"><strong>' + d.porcentaje + '%</strong> ' + (CATEGORIA_NOMBRES[d.categoria] || d.categoria) + '</span>';
+            }).join('');
+            return '<div class="club-disc-nivel"><span class="club-disc-nivel-label">Nivel ' + nivel + '</span><div class="club-disc-items">' + items + '</div></div>';
+          }).join('');
         });
     }
 
@@ -1811,14 +1817,17 @@
         });
 
         var wrap = document.getElementById('loyalty-descuento');
-        if (cliente.nivel_premiado < 2) {
+        if (progreso.nivelVigente < 2) {
           wrap.hidden = true;
         } else {
           wrap.hidden = false;
-          loadDescuentoActivo(progreso.nivelVigente, function (descuento) {
-            document.getElementById('loyalty-descuento-text').textContent = descuento
-              ? descuento.descripcion
-              : 'Tu beneficio está en pausa por inactividad — volvé a comprar para reactivarlo.';
+          loadDescuentosPorNivel(progreso.nivelVigente, function (descuentos) {
+            var listEl = document.getElementById('loyalty-descuento-list');
+            listEl.innerHTML = descuentos.length
+              ? descuentos.map(function (d) {
+                  return '<div class="loyalty-descuento__row"><span>' + (CATEGORIA_NOMBRES[d.categoria] || d.categoria) + '</span><strong>' + d.porcentaje + '%</strong></div>';
+                }).join('')
+              : '<p class="loyalty-descuento__text">Sin descuentos activos en tu nivel actual.</p>';
           });
         }
       });
@@ -2022,17 +2031,15 @@
         });
 
         var descEl = document.getElementById('staff-detail-descuento');
-        if (staffCurrentCliente.nivel_premiado < 2) {
+        if (progreso.nivelVigente < 2) {
           descEl.textContent = 'Ninguno';
           return;
         }
-        loadDescuentoActivo(progreso.nivelVigente, function (descuento) {
-          if (!descuento) {
-            descEl.textContent = 'En pausa por inactividad';
-          } else {
-            descEl.textContent = descuento.porcentaje + '% (' + descuento.descripcion + ')' +
-              (progreso.nivelVigente < staffCurrentCliente.nivel_premiado ? ' — bajó por inactividad' : '');
-          }
+        loadDescuentosPorNivel(progreso.nivelVigente, function (descuentos) {
+          descEl.textContent = descuentos.length
+            ? descuentos.map(function (d) { return (CATEGORIA_NOMBRES[d.categoria] || d.categoria) + ' ' + d.porcentaje + '%'; }).join(' · ') +
+              (progreso.nivelVigente < staffCurrentCliente.nivel_premiado ? ' (bajó por inactividad)' : '')
+            : 'Ninguno';
         });
       });
     }
