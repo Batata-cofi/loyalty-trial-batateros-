@@ -888,6 +888,8 @@
       if (closeBtn) closeBtn.focus();
     }
 
+    var pendingScrollToMenu = false;
+
     function close() {
       modal.classList.remove('is-visible');
       setTimeout(function () {
@@ -895,12 +897,18 @@
         document.body.classList.remove('modal-open');
         clearCarousel();
         if (lastFocused && typeof lastFocused.focus === 'function') lastFocused.focus();
+        if (pendingScrollToMenu) {
+          pendingScrollToMenu = false;
+          var menuEl = document.getElementById('menu');
+          if (menuEl) menuEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
       }, 250);
     }
 
     var encargarBtn = document.getElementById('combo-modal-encargar');
 
     function openFromTrigger(el) {
+      pendingScrollToMenu = false;
       if (el.classList.contains('combo-card')) {
         openWith(el.dataset.comboImage, el.dataset.comboName, el.dataset.comboPrice, el.dataset.comboAlt);
       } else if (el.dataset.productVariants) {
@@ -930,12 +938,11 @@
         e.preventDefault();
         e.stopImmediatePropagation();
         trackEvent('tortas_finde_popup_open');
-        openWithCarousel(TORTAS_FINDE_LIST, 'Tortas del finde', '', 'Las tortas de esta semana. Encargalas con anticipación.');
-        if (encargarBtn) {
-          encargarBtn.hidden = false;
-          encargarBtn.textContent = 'Encargar por WhatsApp';
-          encargarBtn.href = 'https://wa.me/5491134316255?text=' + encodeURIComponent('Hola Batata! Quiero consultar por las tortas del finde.');
-        }
+        pendingScrollToMenu = true;
+        openWithCarousel(TORTAS_FINDE_LIST, 'Tortas del finde', '', 'Los especiales de este finde');
+        var descEl = modal.querySelector('.pastry-modal__description');
+        if (descEl) descEl.classList.add('pastry-modal__description--cta');
+        if (encargarBtn) encargarBtn.hidden = true;
       });
     }
 
