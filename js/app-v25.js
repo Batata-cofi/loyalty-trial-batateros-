@@ -181,6 +181,13 @@
     { image: 'img/tortas/torta-arandanos-limon.jpg', caption: 'Torta arándanos y limón' }
   ];
 
+  // Tortas especiales del finde — se actualiza a mano cada semana con las
+  // fotos nuevas. Si queda vacío, el botón "Ver la carta" funciona normal
+  // (sin popup) incluso viernes/sábado/domingo.
+  var TORTAS_FINDE_LIST = [
+    { image: 'img/tortas/torta-batata-1.jpg', label: 'PRUEBA - Torta batata' }
+  ];
+
   var INSTAGRAM_URL = 'https://www.instagram.com/batata.cofi/';
 
   var COMBOS_BY_TIMESLOT = {
@@ -904,8 +911,30 @@
       if (encargarBtn) {
         var isTorta = el.classList.contains('torta-card');
         encargarBtn.hidden = !isTorta;
+        encargarBtn.textContent = 'Encargar';
         if (isTorta) encargarBtn.href = 'encargo.html?torta=' + encodeURIComponent(el.dataset.productName || '');
       }
+    }
+
+    // "Ver la carta" viernes/sábado/domingo: si hay tortas del finde
+    // cargadas, muestra el popup antes de ir al menú. El resto de la
+    // semana (o si la lista está vacía) el botón se comporta normal.
+    var verCartaBtn = document.querySelector('.hero__ctas .btn--primary[href="#menu"]');
+    if (verCartaBtn) {
+      verCartaBtn.addEventListener('click', function (e) {
+        var t = getBuenosAiresTime();
+        var esFinde = t.weekday === 'friday' || t.weekday === 'saturday' || t.weekday === 'sunday';
+        if (!esFinde || TORTAS_FINDE_LIST.length === 0) return;
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        trackEvent('tortas_finde_popup_open');
+        openWithCarousel(TORTAS_FINDE_LIST, 'Tortas del finde', '', 'Las tortas de esta semana. Encargalas con anticipación.');
+        if (encargarBtn) {
+          encargarBtn.hidden = false;
+          encargarBtn.textContent = 'Encargar por WhatsApp';
+          encargarBtn.href = 'https://wa.me/5491134316255?text=' + encodeURIComponent('Hola Batata! Quiero consultar por las tortas del finde.');
+        }
+      });
     }
 
     document.addEventListener('click', function (e) {
@@ -1472,6 +1501,23 @@
     }
     function clearPending() {
       try { window.localStorage.removeItem(LOYALTY_PENDING_KEY); } catch (err) {}
+    }
+    // Reconstruye los datos de alta a partir de los metadatos guardados en la
+    // sesión de Supabase (persisten del lado del servidor, no del navegador).
+    // Red de seguridad para cuando el link de confirmación se abre en otro
+    // dispositivo/navegador distinto al que llenó el formulario, donde
+    // localStorage (readPending) no tiene nada.
+    function pendingFromSessionMetadata(session) {
+      var meta = session && session.user && session.user.user_metadata;
+      if (!meta || !meta.nombre) return null;
+      return {
+        nombre: meta.nombre,
+        apellido: meta.apellido || '',
+        fecha_nacimiento: meta.fecha_nacimiento || null,
+        telefono: meta.telefono || '',
+        email: session.user.email,
+        newsletter: meta.newsletter !== false
+      };
     }
 
     function showFieldError(fieldId, message) {
@@ -2141,7 +2187,7 @@
               .maybeSingle()
               .then(function (result) {
                 if (result.error || !result.data) {
-                  var pending = readPending();
+                  var pending = readPending() || pendingFromSessionMetadata(session);
                   if (pending) {
                     completeRegistration(session.user.id, pending);
                   } else {
@@ -2261,7 +2307,19 @@
 
         var pendingData = { nombre: nombre, apellido: apellido, fecha_nacimiento: fechaNacimiento, telefono: telefono, email: email, newsletter: newsletter };
 
-        bataterosClient.auth.signUp({ email: email, password: password, options: { data: { nombre: nombre } } }).then(function (res) {
+        bataterosClient.auth.signUp({
+          email: email,
+          password: password,
+          options: {
+            data: {
+              nombre: nombre,
+              apellido: apellido,
+              fecha_nacimiento: fechaNacimiento,
+              telefono: telefono,
+              newsletter: newsletter
+            }
+          }
+        }).then(function (res) {
           submitBtn.disabled = false;
           submitBtn.textContent = originalLabel;
 
@@ -2897,13 +2955,6 @@
     initReviewPopup();
     initCtaBar();
   }
-
-  (function() {
-    var script = document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js';
-    script.onload = function() { emailjs.init('lzWqlAeU6ejqBHLDH'); };
-    document.head.appendChild(script);
-  })();
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
