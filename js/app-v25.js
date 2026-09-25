@@ -185,8 +185,8 @@
   // fotos nuevas. Si queda vacío, el botón "Ver la carta" funciona normal
   // (sin popup) incluso viernes/sábado/domingo.
   var TORTAS_FINDE_LIST = [
-    { image: 'img/tortas-finde/marquise-chocolate.jpg',    label: 'Marquise de chocolate (Sin Gluten)' },
-    { image: 'img/tortas-finde/torta-vasca-pistacho.jpg',  label: 'Torta vasca de pistacho (Sin Gluten)' }
+    { image: 'img/tortas-finde/marquise-chocolate.jpg',    label: 'Marquise de chocolate (Sin Gluten) · $10.000' },
+    { image: 'img/tortas-finde/torta-vasca-pistacho.jpg',  label: 'Torta vasca de pistacho (Sin Gluten) · $15.000' }
   ];
 
   var INSTAGRAM_URL = 'https://www.instagram.com/batata.cofi/';
