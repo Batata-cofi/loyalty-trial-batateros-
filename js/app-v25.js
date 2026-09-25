@@ -940,6 +940,7 @@
         trackEvent('tortas_finde_popup_open');
         pendingScrollToMenu = true;
         openWithCarousel(TORTAS_FINDE_LIST, 'Tortas del finde', '', 'Los especiales de este finde');
+        nameEl.innerHTML = '<img src="img/logo.png" alt="Batata Cofi" style="height:34px;">';
         var descEl = modal.querySelector('.pastry-modal__description');
         if (descEl) descEl.classList.add('pastry-modal__description--cta');
         if (encargarBtn) encargarBtn.hidden = true;
