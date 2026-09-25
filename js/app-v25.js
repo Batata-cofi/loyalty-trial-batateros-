@@ -2,7 +2,7 @@
   'use strict';
 
   var GOOGLE_RATING = 4.8;
-  var GOOGLE_REVIEW_COUNT = 310;
+  var GOOGLE_REVIEW_COUNT = 337;
 
   var SERVING_NOW = {
     espresso: {
