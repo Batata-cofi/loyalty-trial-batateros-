@@ -185,7 +185,6 @@
   // fotos nuevas. Si queda vacío, el botón "Ver la carta" funciona normal
   // (sin popup) incluso viernes/sábado/domingo.
   var TORTAS_FINDE_LIST = [
-    { image: 'img/tortas/torta-batata-1.jpg', label: 'PRUEBA - Torta batata' }
   ];
 
   var INSTAGRAM_URL = 'https://www.instagram.com/batata.cofi/';
