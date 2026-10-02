@@ -718,6 +718,23 @@ section[id] {
 .combo-modal.is-visible .combo-modal__content {
   transform: scale(1);
 }
+/* Entrada suave: popup de tortas que aparece solo al deslizar la pagina */
+.combo-modal--suave .combo-modal__content {
+  transform: translateY(14px) scale(0.98);
+}
+.combo-modal--suave.is-visible {
+  transition-duration: 700ms;
+  transition-timing-function: ease-out;
+}
+.combo-modal--suave.is-visible .combo-modal__content {
+  transform: none;
+  transition: transform 700ms ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .combo-modal--suave .combo-modal__content { transform: scale(0.95); }
+  .combo-modal--suave.is-visible { transition-duration: 200ms; }
+  .combo-modal--suave.is-visible .combo-modal__content { transform: scale(1); transition-duration: 200ms; }
+}
 .combo-modal__image {
   width: 100%;
   aspect-ratio: 4 / 3;

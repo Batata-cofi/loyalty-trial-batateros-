@@ -797,6 +797,7 @@
       imgEl.style.display = '';
       priceEl.style.paddingBottom = '';
       modal.classList.remove('combo-modal--slim-title');
+      modal.classList.remove('combo-modal--suave');
     }
 
     function openWith(image, name, price, alt) {
@@ -944,6 +945,7 @@
       trackEvent('tortas_finde_popup_open', { origen: origen });
       pendingScrollToMenu = true;
       openWithCarousel(TORTAS_FINDE_LIST, 'Tortas del finde', '', 'Los especiales de este finde');
+      if (origen === 'scroll') modal.classList.add('combo-modal--suave');
       nameEl.innerHTML = '<img src="img/logo.png" alt="Batata Cofi" style="height:34px;">';
       var descEl = modal.querySelector('.pastry-modal__description');
       if (descEl) descEl.classList.add('pastry-modal__description--cta');
@@ -960,17 +962,34 @@
       });
     }
 
+    // Al deslizar, el popup no interrumpe el gesto: espera a que la persona
+    // frene un momento dentro de la carta y recién ahí aparece, suave.
     var seccionCarta = document.getElementById('menu');
     if (seccionCarta && 'IntersectionObserver' in window) {
+      var esperaCarta = null;
+      var ESPERA_CARTA_MS = 900;
+      var sigueEnLaCarta = function () {
+        var r = seccionCarta.getBoundingClientRect();
+        return r.top < window.innerHeight * 0.5 && r.bottom > window.innerHeight * 0.3;
+      };
+      var programarCarta = function () {
+        clearTimeout(esperaCarta);
+        esperaCarta = setTimeout(function () {
+          esperaCarta = null;
+          if (tortasFindeMostrado || !hayTortasFinde() || !sigueEnLaCarta()) return;
+          if (document.body.classList.contains('modal-open')) return;
+          abrirTortasFinde('scroll');
+        }, ESPERA_CARTA_MS);
+      };
       var observadorCarta = new IntersectionObserver(function (entries) {
         for (var i = 0; i < entries.length; i++) {
-          if (!entries[i].isIntersecting || tortasFindeMostrado) continue;
-          if (!hayTortasFinde() || document.body.classList.contains('modal-open')) continue;
-          observadorCarta.disconnect();
-          abrirTortasFinde('scroll');
+          if (entries[i].isIntersecting && !tortasFindeMostrado) programarCarta();
         }
       }, { rootMargin: '0px 0px -50% 0px', threshold: 0 });
       observadorCarta.observe(seccionCarta);
+      window.addEventListener('scroll', function () {
+        if (esperaCarta) programarCarta();
+      }, { passive: true });
     }
 
     document.addEventListener('click', function (e) {
