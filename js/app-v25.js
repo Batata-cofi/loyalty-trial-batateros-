@@ -927,25 +927,50 @@
       }
     }
 
-    // "Ver la carta" viernes/sábado/domingo: si hay tortas del finde
-    // cargadas, muestra el popup antes de ir al menú. El resto de la
-    // semana (o si la lista está vacía) el botón se comporta normal.
+    // Popup de tortas del finde (viernes/sábado/domingo, si hay tortas
+    // cargadas). Sale al tocar "Ver la carta" y también, una sola vez por
+    // visita, cuando la persona llega a la carta deslizando la página. El
+    // resto de la semana (o con la lista vacía) no pasa nada de esto.
+    var tortasFindeMostrado = false;
+
+    function hayTortasFinde() {
+      var t = getBuenosAiresTime();
+      var esFinde = t.weekday === 'friday' || t.weekday === 'saturday' || t.weekday === 'sunday';
+      return esFinde && TORTAS_FINDE_LIST.length > 0;
+    }
+
+    function abrirTortasFinde(origen) {
+      tortasFindeMostrado = true;
+      trackEvent('tortas_finde_popup_open', { origen: origen });
+      pendingScrollToMenu = true;
+      openWithCarousel(TORTAS_FINDE_LIST, 'Tortas del finde', '', 'Los especiales de este finde');
+      nameEl.innerHTML = '<img src="img/logo.png" alt="Batata Cofi" style="height:34px;">';
+      var descEl = modal.querySelector('.pastry-modal__description');
+      if (descEl) descEl.classList.add('pastry-modal__description--cta');
+      if (encargarBtn) encargarBtn.hidden = true;
+    }
+
     var verCartaBtn = document.querySelector('.hero__ctas .btn--primary[href="#menu"]');
     if (verCartaBtn) {
       verCartaBtn.addEventListener('click', function (e) {
-        var t = getBuenosAiresTime();
-        var esFinde = t.weekday === 'friday' || t.weekday === 'saturday' || t.weekday === 'sunday';
-        if (!esFinde || TORTAS_FINDE_LIST.length === 0) return;
+        if (!hayTortasFinde()) return;
         e.preventDefault();
         e.stopImmediatePropagation();
-        trackEvent('tortas_finde_popup_open');
-        pendingScrollToMenu = true;
-        openWithCarousel(TORTAS_FINDE_LIST, 'Tortas del finde', '', 'Los especiales de este finde');
-        nameEl.innerHTML = '<img src="img/logo.png" alt="Batata Cofi" style="height:34px;">';
-        var descEl = modal.querySelector('.pastry-modal__description');
-        if (descEl) descEl.classList.add('pastry-modal__description--cta');
-        if (encargarBtn) encargarBtn.hidden = true;
+        abrirTortasFinde('boton');
       });
+    }
+
+    var seccionCarta = document.getElementById('menu');
+    if (seccionCarta && 'IntersectionObserver' in window) {
+      var observadorCarta = new IntersectionObserver(function (entries) {
+        for (var i = 0; i < entries.length; i++) {
+          if (!entries[i].isIntersecting || tortasFindeMostrado) continue;
+          if (!hayTortasFinde() || document.body.classList.contains('modal-open')) continue;
+          observadorCarta.disconnect();
+          abrirTortasFinde('scroll');
+        }
+      }, { rootMargin: '0px 0px -50% 0px', threshold: 0 });
+      observadorCarta.observe(seccionCarta);
     }
 
     document.addEventListener('click', function (e) {
