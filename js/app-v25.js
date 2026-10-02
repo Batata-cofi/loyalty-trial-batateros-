@@ -185,9 +185,9 @@
   // fotos nuevas. Si queda vacío, el botón "Ver la carta" funciona normal
   // (sin popup) incluso viernes/sábado/domingo.
   var TORTAS_FINDE_LIST = [
-    { image: 'img/tortas-finde/marquise-chocolate.jpg',   label: 'Marquise de chocolate (Sin Gluten) · $10.000' },
-    { image: 'img/tortas-finde/tarta-maracuya.jpg',       label: 'Tarta de maracuyá · $15.000' },
-    { image: 'img/tortas-finde/torta-vasca-pistacho.jpg', label: 'Torta vasca de pistacho (Sin Gluten) · $15.000' }
+    { image: 'img/tortas-finde/bretona.jpg',              label: 'Bretona · $8.000',                  desc: 'Masa de cookie, crema mascarpone, reducción de frutilla y frutillas' },
+    { image: 'img/tortas-finde/vasca-dulce-de-leche.jpg', label: 'Vasca de dulce de leche · $12.000', desc: 'Con salsa toffee' },
+    { image: 'img/tortas-finde/torta-limon.jpg',          label: 'Torta de limón · $12.000',          desc: 'Con curd de limón y reducción de frambuesa' }
   ];
 
   var INSTAGRAM_URL = 'https://www.instagram.com/batata.cofi/';
@@ -821,7 +821,8 @@
       priceEl.textContent = price || '';
       var carouselHtml = '<div class="product-modal__carousel">';
       for (var i = 0; i < variants.length; i++) {
-        var labelSpan = variants[i].title ? '' : '<span class="product-modal__slide-label">' + escapeHtml(variants[i].label) + '</span>';
+        var labelSpan = variants[i].title ? '' : '<span class="product-modal__slide-label">' + escapeHtml(variants[i].label) + '</span>'
+          + (variants[i].desc ? '<span class="product-modal__slide-desc">' + escapeHtml(variants[i].desc) + '</span>' : '');
         var slideClass = variants[i].title ? ' product-modal__slide--tall' : '';
         carouselHtml += '<div class="product-modal__slide' + slideClass + '">'
           + '<img src="' + escapeHtml(variants[i].image) + '" alt="' + escapeHtml(variants[i].label) + '" width="640" height="480">'
