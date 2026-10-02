@@ -2,7 +2,7 @@
   'use strict';
 
   var GOOGLE_RATING = 4.8;
-  var GOOGLE_REVIEW_COUNT = 337;
+  var GOOGLE_REVIEW_COUNT = 340;
 
   var SERVING_NOW = {
     espresso: {
@@ -1110,13 +1110,11 @@
       html += '<figure class="torta-card has-photo"'
             +   ' data-product-image="' + escapeHtml(item.image) + '"'
             +   ' data-product-name="' + escapeHtml(item.caption) + '"'
-            +   ' data-product-price="$70.000"'
             +   ' role="button" tabindex="0"'
             +   ' aria-label="Ver foto de ' + escapeHtml(item.caption) + '"'
             +   ' data-reveal data-stagger="' + (i % 4) + '">'
             +   '<img src="' + escapeHtml(item.image) + '" alt="' + escapeHtml(item.caption) + '" loading="lazy" width="640" height="540">'
             +   '<figcaption class="torta-card__caption">' + escapeHtml(item.caption) + '</figcaption>'
-            +   '<span class="torta-card__price">$70.000</span>'
             + '</figure>';
     }
     grid.innerHTML = html;
