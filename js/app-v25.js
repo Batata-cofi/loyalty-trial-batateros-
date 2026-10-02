@@ -1159,177 +1159,7 @@
     grid.innerHTML = html;
   }
 
-  // ─── VOUCHER ───────────────────────────────────────────────────────────────
-
-  var VOUCHER_STORAGE_KEY = 'batata_voucher';
-  var VOUCHER_TTL_MS = 4 * 24 * 60 * 60 * 1000;
-  var VOUCHER_DAYS_ES   = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
-  var VOUCHER_MONTHS_ES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
-  var VOUCHER_ENDPOINT  = 'https://script.google.com/macros/s/AKfycbxSHDKj-5XNopH7Ntt-Q2airUUzyPrulqEKxyCmpMlR9_W5UB1YVXFE1e8qG_Tdpsa4cw/exec';
-
-  function readStoredVoucher() {
-    try {
-      var raw = window.localStorage.getItem(VOUCHER_STORAGE_KEY);
-      if (!raw) return null;
-      var parsed = JSON.parse(raw);
-      if (!parsed || typeof parsed.expires !== 'number') return null;
-      return parsed;
-    } catch (err) { return null; }
-  }
-
-  function writeStoredVoucher(data) {
-    try { window.localStorage.setItem(VOUCHER_STORAGE_KEY, JSON.stringify(data)); } catch (err) {}
-  }
-
-  function generateVoucherCode() {
-    var ts   = Date.now().toString(36).toUpperCase().slice(-4);
-    var rand = Math.random().toString(36).toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4);
-    while (rand.length < 4) rand += 'X';
-    return 'BATATA-' + ts + '-' + rand;
-  }
-
-  function formatVoucherDate(d) {
-    return VOUCHER_DAYS_ES[d.getDay()] + ' ' + d.getDate() + ' de ' + VOUCHER_MONTHS_ES[d.getMonth()];
-  }
-
-  function initVoucher() {
-    var modal      = document.getElementById('voucher-modal');
-    if (!modal) return;
-    var form       = document.getElementById('voucher-form');
-    var closeBtn   = modal.querySelector('.voucher-modal__close');
-    var codeField  = document.getElementById('voucher-code-field');
-    var expiresField = document.getElementById('voucher-expires-field');
-    var codeDisplay  = document.getElementById('voucher-code-display');
-    var expiryDisplay = document.getElementById('voucher-expiry-display');
-    var formView   = modal.querySelector('[data-voucher-view="form"]');
-    var resultView = modal.querySelector('[data-voucher-view="result"]');
-    var lastFocused = null;
-
-    function showVoucher(code, expires) {
-      codeDisplay.textContent  = code;
-      expiryDisplay.textContent = formatVoucherDate(new Date(expires));
-      formView.hidden  = true;
-      resultView.hidden = false;
-    }
-
-    function openModal() {
-      lastFocused = document.activeElement;
-      var saved = readStoredVoucher();
-      if (saved && saved.expires > Date.now()) {
-        showVoucher(saved.code, saved.expires);
-      } else {
-        formView.hidden  = false;
-        resultView.hidden = true;
-      }
-      modal.hidden = false;
-      document.body.classList.add('modal-open');
-      requestAnimationFrame(function () { modal.classList.add('is-visible'); });
-      if (closeBtn) closeBtn.focus();
-    }
-
-    function closeModal() {
-      modal.classList.remove('is-visible');
-      setTimeout(function () {
-        modal.hidden = true;
-        document.body.classList.remove('modal-open');
-        if (lastFocused && typeof lastFocused.focus === 'function') lastFocused.focus();
-      }, 250);
-    }
-
-    document.querySelectorAll('[data-open-voucher]').forEach(function (btn) {
-      btn.addEventListener('click', openModal);
-    });
-
-    modal.addEventListener('click', function (e) {
-      if (e.target === modal || e.target === closeBtn) closeModal();
-    });
-
-    document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape' && !modal.hidden) closeModal();
-    });
-
-    if (form) {
-      form.addEventListener('submit', function (e) {
-        e.preventDefault();
-
-        // Leer todos los campos ANTES de cualquier otra operación
-        var nombreInput  = form.querySelector('[name="nombre"]');
-        var emailInput   = form.querySelector('[name="email"]');
-        var resenaInput  = form.querySelector('[name="resena_url"]');
-
-        var nombre   = nombreInput  ? nombreInput.value.trim()  : '';
-        var email    = emailInput   ? emailInput.value.trim()   : '';
-        var linkResena = resenaInput ? resenaInput.value.trim() : '';
-
-        // Validar link de reseña
-        if (!linkResena) {
-          alert('Por favor pegá el link de tu reseña en Google Maps para continuar.');
-          return;
-        }
-        if (
-          linkResena.indexOf('google.com/maps') === -1 &&
-          linkResena.indexOf('maps.google') === -1 &&
-          linkResena.indexOf('maps.app.goo.gl') === -1 &&
-          linkResena.indexOf('goo.gl/maps') === -1
-        ) {
-          alert('El link no parece ser de Google Maps. Copiá el link directo de tu reseña y pegalo acá.');
-          return;
-        }
-
-        var submitBtn   = form.querySelector('button[type="submit"]');
-        var originalLabel = submitBtn.textContent;
-        submitBtn.disabled = true;
-        submitBtn.textContent = 'Generando…';
-
-        var code    = generateVoucherCode();
-        var expires = Date.now() + VOUCHER_TTL_MS;
-
-        if (codeField)   codeField.value   = code;
-        if (expiresField) expiresField.value = new Date(expires).toISOString();
-
-        writeStoredVoucher({ code: code, expires: expires, created: Date.now() });
-
-        var fechaVence    = new Date(expires);
-        var fechaVenceStr = VOUCHER_DAYS_ES[fechaVence.getDay()] + ' ' + fechaVence.getDate() + ' de ' + VOUCHER_MONTHS_ES[fechaVence.getMonth()];
-
-        function finalize() {
-          formView.hidden  = true;
-          resultView.hidden = false;
-          if (codeDisplay)   codeDisplay.textContent   = '📬 Revisá tu correo electrónico';
-          if (expiryDisplay) expiryDisplay.textContent = 'Te enviamos el voucher a ' + email + '. Mostralo en el local para canjear tu latte gratis.';
-          submitBtn.disabled  = false;
-          submitBtn.textContent = originalLabel;
-          updateVoucherButtonsLabel();
-          trackEvent('qr_voucher_claimed', {
-            qr_source: isQRVisit() ? 'mesa' : 'web'
-          });
-        }
-
-        // Enviar al Apps Script
-        fetch(VOUCHER_ENDPOINT, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain' },
-          body: JSON.stringify({
-            codigo:    code,
-            nombre:    nombre,
-            email:     email,
-            linkResena: linkResena
-          }),
-          mode: 'no-cors'
-        }).then(finalize).catch(finalize);
-      });
-    }
-
-    updateVoucherButtonsLabel();
-  }
-
-  function updateVoucherButtonsLabel() {
-    var saved    = readStoredVoucher();
-    var hasActive = !!(saved && saved.expires > Date.now());
-    document.querySelectorAll('[data-open-voucher]').forEach(function (btn) {
-      btn.textContent = hasActive ? 'Ver mi voucher activo' : 'Reclamar mi latte gratis';
-    });
-  }
+  var MONTHS_ES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
 
   // ─── BATATEROS (loyalty) ───────────────────────────────────────────────────
   //
@@ -1361,8 +1191,8 @@
   var LOYALTY_PENDING_KEY = 'batata_loyalty_pending';
   var CLIENTE_COLUMNS = 'id, nombre, apellido, numero_socio, nivel_premiado, vuelta, nivel_ciclo, created_at, email, telefono, newsletter';
 
-  // Mismo Apps Script que ya usa el sitio para el voucher del latte y el
-  // newsletter de mesa — le sumamos un tipo nuevo ('batateros_bienvenida')
+  // Mismo Apps Script que ya usa el sitio para el newsletter de mesa —
+  // le sumamos un tipo nuevo ('batateros_bienvenida')
   // en vez de armar un mecanismo de mails aparte.
   var BATATEROS_WELCOME_ENDPOINT = 'https://script.google.com/macros/s/AKfycbxSHDKj-5XNopH7Ntt-Q2airUUzyPrulqEKxyCmpMlR9_W5UB1YVXFE1e8qG_Tdpsa4cw/exec';
 
@@ -1414,7 +1244,7 @@
   }
 
   function formatFecha(date) {
-    return date.getDate() + ' de ' + VOUCHER_MONTHS_ES[date.getMonth()];
+    return date.getDate() + ' de ' + MONTHS_ES[date.getMonth()];
   }
 
   // `new Date('2026-09-23')` parsea como medianoche UTC — en Argentina
@@ -1639,7 +1469,7 @@
 
     function formatMesAno(iso) {
       var d = new Date(iso);
-      return VOUCHER_MONTHS_ES[d.getMonth()] + ' de ' + d.getFullYear();
+      return MONTHS_ES[d.getMonth()] + ' de ' + d.getFullYear();
     }
 
     function iniciales(nombre, apellido) {
@@ -2951,7 +2781,6 @@
     renderInstagramFeed();
     initTabs();
     initComboModal();
-    initVoucher();
     initLoyalty();
     initParallax();
     initSmoothScroll();

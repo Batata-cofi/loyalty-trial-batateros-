@@ -48,7 +48,7 @@
     var bataterosClient = window.supabase.createClient(BATATEROS_SUPABASE_URL, BATATEROS_SUPABASE_ANON_KEY);
   </script>
 
-  <link rel="stylesheet" href="css/styles-v25.css?v=25zq">
+  <link rel="stylesheet" href="css/styles-v25.css?v=25zr">
 
   <script type="application/ld+json">
   {
@@ -269,18 +269,6 @@
     </div>
   </section>
 
-  <section class="voucher-cta" id="voucher">
-    <div class="voucher-cta__inner">
-      <span class="section-label" data-reveal>Reseñá y tomate un latte</span>
-      <h2 class="voucher-cta__title" data-reveal>Tu opinión vale un café</h2>
-      <p class="voucher-cta__copy" data-reveal>Dejanos una reseña en Google y te invitamos un latte la próxima vez que vengas. Generá tu voucher y mostralo al barista.</p>
-      <button type="button" class="voucher-cta__button" data-open-voucher data-reveal>
-        Reclamar mi latte gratis
-      </button>
-      <p class="voucher-cta__fineprint" data-reveal>Válido por 4 días desde que lo generás. Un voucher por persona.</p>
-    </div>
-  </section>
-
   <section class="loyalty-cta" id="batateros">
     <div class="loyalty-cta__inner">
       <img src="img/batateros-club-logo-white.png" alt="Batateros" class="loyalty-cta__logo" loading="lazy" data-reveal>
@@ -418,9 +406,6 @@
       <div class="testimonials__grid" id="testimonials-grid"></div>
       <a href="https://www.google.com/maps/search/?api=1&query=Batata+Cofi+Florentino+Ameghino+908+Avellaneda" target="_blank" rel="noopener" class="testimonials__more-link" data-reveal>
         Ver más reseñas en Google →
-      </a>
-      <a href="#voucher" class="testimonials__voucher-link" data-reveal>
-        Dejá tu reseña y tomate un latte gratis →
       </a>
     </div>
   </section>
@@ -803,65 +788,6 @@
     </div>
   </div>
 
-  <div class="voucher-modal" id="voucher-modal" hidden role="dialog" aria-modal="true" aria-labelledby="voucher-modal-title">
-    <button class="voucher-modal__close" aria-label="Cerrar" type="button">×</button>
-    <div class="voucher-modal__content">
-
-      <div class="voucher-form-view" data-voucher-view="form">
-        <h3 id="voucher-modal-title" class="voucher-modal__title">Reclamá tu latte</h3>
-        <p class="voucher-modal__subtitle">
-          Dejanos una <a href="https://www.google.com/maps/place/Batata+Cofi/@-34.6624064,-58.3641898,17z/data=!4m8!3m7!1s0x95a333298b4b82f3:0x723b6f2db688e5e3!8m2!3d-34.6624108!4d-58.3616149!9m1!1b1!16s%2Fg%2F11lds5r3mb" target="_blank" rel="noopener" class="voucher-modal__google-link">reseña en Google</a> y completá esto:
-        </p>
-        <form class="voucher-form" id="voucher-form" action="https://formspree.io/f/PLACEHOLDER" method="POST">
-          <label class="voucher-form__field">
-            <span>Nombre</span>
-            <input type="text" name="nombre" required placeholder="Como te llamás" autocomplete="name">
-          </label>
-          <label class="voucher-form__field">
-            <span>Email</span>
-            <input type="email" name="email" required placeholder="vos@tuemail.com" autocomplete="email">
-          </label>
-          <label class="voucher-form__field">
-            <span>Tu reseña en Google</span>
-            <a href="https://www.google.com/maps/place/Batata+Cofi/@-34.6624064,-58.3641898,17z/data=!4m8!3m7!1s0x95a333298b4b82f3:0x723b6f2db688e5e3!8m2!3d-34.6624108!4d-58.3616149!9m1!1b1!16s%2Fg%2F11lds5r3mb" target="_blank" rel="noopener" class="voucher-form__resena-btn">
-              ⭐ Hacé tu reseña en Google Maps
-            </a>
-            <input type="url" name="resena_url" placeholder="Copiá y pegá acá el link de tu reseña">
-            <small>Entrá, dejá tu reseña, copiá la URL y pegala acá arriba.</small>
-          </label>
-          <input type="hidden" name="codigo" id="voucher-code-field">
-          <input type="hidden" name="expires" id="voucher-expires-field">
-          <input type="hidden" name="_subject" value="Nuevo voucher de latte gratis — Batata Cofi">
-          <button type="submit" class="voucher-form__submit">Generar mi voucher</button>
-        </form>
-      </div>
-
-      <div class="voucher-result" data-voucher-view="result" hidden>
-        <div class="voucher-ticket">
-          <div class="voucher-ticket__top">
-            <span class="voucher-ticket__brand">Batata Cofi</span>
-            <span class="voucher-ticket__type">Latte gratis</span>
-          </div>
-          <div class="voucher-ticket__perforation" aria-hidden="true"></div>
-          <div class="voucher-ticket__body">
-            <span class="voucher-ticket__label">Tu código</span>
-            <strong class="voucher-ticket__code" id="voucher-code-display">—</strong>
-            <span class="voucher-ticket__label">Vence</span>
-            <span class="voucher-ticket__expiry" id="voucher-expiry-display">—</span>
-          </div>
-        </div>
-        <p class="voucher-result__instructions">
-          Mostrale esta pantalla al barista cuando vengas.<br>
-          Tenés <strong>4 días</strong> para usarlo.
-        </p>
-        <p class="voucher-result__note">
-          Te enviamos también una copia a tu mail. Lo guardamos en este dispositivo, podés volver a verlo abriendo este sitio.
-        </p>
-      </div>
-
-    </div>
-  </div>
-
   <a class="mobile-cta-bar" href="https://www.pedidosya.com.ar/restaurantes/avellaneda/batata-cofi-a22a563b-8402-480d-8823-2dfb5d125331-menu" target="_blank" rel="noopener" aria-label="Pedir ahora por PedidosYa">
     <span class="mobile-cta-bar__label">
       <svg class="mobile-cta-bar__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -875,6 +801,6 @@
     <span class="mobile-cta-bar__arrow" aria-hidden="true">→</span>
   </a>
 
-  <script src="js/app-v25.js?v=28"></script>
+  <script src="js/app-v25.js?v=29"></script>
 </body>
 </html>
