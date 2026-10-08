@@ -1842,8 +1842,11 @@
               .eq('auth_user_id', userId)
               .maybeSingle()
               .then(function (r2) {
-                if (r2.data) renderCard(r2.data);
-                else showView('register');
+                if (r2.data) { renderCard(r2.data); return; }
+                // No es "ya existía": el alta falló de verdad. Antes se mostraba el formulario sin decir nada.
+                if (window.console) console.error('No se pudo crear la tarjeta Batateros:', res.error);
+                showView('register');
+                showFieldError('loyalty-register-error', 'No pudimos crear tu tarjeta con los datos cargados. Escribinos por Instagram (@batata.cofi) y la resolvemos.');
               });
             return;
           }
@@ -2376,13 +2379,50 @@
       });
     }
 
-    bataterosClient.auth.onAuthStateChange(function (event) {
+    // Al confirmar el mail, el link abre el sitio con la sesión ya iniciada pero con el modal cerrado.
+    // Antes la tarjeta recién se creaba si la clienta abría "Batateros" a mano: si no lo hacía (o
+    // confirmaba desde otro navegador) quedaba registrada en Supabase pero sin tarjeta ni alta.
+    // Ahora, con la sesión iniciada y sin tarjeta, se crea sola y se abre la tarjeta.
+    var tarjetaChequeadaPara = null;
+    function crearTarjetaSiFalta(session) {
+      if (!session || !session.user) return;
+      var userId = session.user.id;
+      if (tarjetaChequeadaPara === userId) return;
+      bataterosClient
+        .from('staff_members')
+        .select('id')
+        .eq('auth_user_id', userId)
+        .maybeSingle()
+        .then(function (st) {
+          if (st.data) { tarjetaChequeadaPara = userId; return; } // el staff no tiene tarjeta de cliente
+          bataterosClient
+            .from('clientes_loyalty')
+            .select('id')
+            .eq('auth_user_id', userId)
+            .maybeSingle()
+            .then(function (r) {
+              if (r.error) return; // no se pudo leer: se reintenta en el próximo evento
+              tarjetaChequeadaPara = userId;
+              if (r.data) return; // ya tiene tarjeta
+              var pending = readPending() || pendingFromSessionMetadata(session);
+              if (!pending) return;
+              openModal();
+              completeRegistration(userId, pending);
+            });
+        });
+    }
+
+    bataterosClient.auth.onAuthStateChange(function (event, session) {
       if (event === 'PASSWORD_RECOVERY') {
         openModal();
         showView('reset');
         return;
       }
-      if (event === 'SIGNED_IN' && !modal.hidden) loadCard();
+      if (event === 'SIGNED_IN') {
+        if (!modal.hidden) { loadCard(); return; }
+        // fuera del callback, para no trabar a Supabase con consultas adentro del evento
+        setTimeout(function () { crearTarjetaSiFalta(session); }, 0);
+      }
     });
   }
 
