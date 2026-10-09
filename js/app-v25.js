@@ -187,7 +187,7 @@
   var TORTAS_FINDE_LIST = [
     { image: 'img/tortas-finde/tarta-maracuya.jpg',        label: 'Tarta de maracuyá · $15.000' },
     { image: 'img/tortas-finde/vasca-vainilla-frutas.jpg', label: 'Vasca de vainilla con frutas · $12.000' },
-    { image: 'img/tortas-finde/bretona.jpg',               label: 'Bretona con mascarpone y frambuesa · $9.000', desc: 'Tarta individual' }
+    { image: 'img/tortas-finde/bretona-frambuesa.jpg',     label: 'Bretona con mascarpone y frambuesa · $9.000', desc: 'Tarta individual' }
   ];
 
   var INSTAGRAM_URL = 'https://www.instagram.com/batata.cofi/';
