@@ -185,9 +185,9 @@
   // fotos nuevas. Si queda vacío, el botón "Ver la carta" funciona normal
   // (sin popup) incluso viernes/sábado/domingo.
   var TORTAS_FINDE_LIST = [
-    { image: 'img/tortas-finde/bretona.jpg',              label: 'Bretona · $8.000',                  desc: 'Masa de cookie, crema mascarpone, reducción de frutilla y frutillas' },
-    { image: 'img/tortas-finde/vasca-dulce-de-leche.jpg', label: 'Vasca de dulce de leche · $12.000', desc: 'Con salsa toffee' },
-    { image: 'img/tortas-finde/torta-limon.jpg',          label: 'Torta de limón · $12.000',          desc: 'Con curd de limón y reducción de frambuesa' }
+    { image: 'img/tortas-finde/tarta-maracuya.jpg',        label: 'Tarta de maracuyá · $15.000' },
+    { image: 'img/tortas-finde/vasca-vainilla-frutas.jpg', label: 'Vasca de vainilla con frutas · $12.000' },
+    { image: 'img/tortas-finde/bretona.jpg',               label: 'Bretona con mascarpone y frambuesa · $9.000', desc: 'Tarta individual' }
   ];
 
   var INSTAGRAM_URL = 'https://www.instagram.com/batata.cofi/';
